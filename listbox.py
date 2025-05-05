@@ -19,10 +19,12 @@ def center_window(window, width, height):
     window.geometry(f"{width}x{height}+{x}+{y}")
 
 def get_next_filename(extension, username):
-    base = re.sub(r'\W+', '', username) or "resume"
-    n = 1
+    # Remove spaces and non-alphanumeric characters, and replace spaces with nothing
+    base = re.sub(r'\W+', '', username.replace(" ", "")) or "resume"
+    n = 0
     while True:
-        filename = f"{base}{n}.{extension.lower()}"
+        # Append number if n > 0, else use the base name
+        filename = f"{base}{n if n > 0 else ''}.{extension.lower()}"
         full_path = os.path.join(documents_path, filename)
         if not os.path.exists(full_path):
             return full_path
@@ -130,7 +132,6 @@ def main_app():
 
     summary_text = Text(summary_frame, width=40, height=6, font=("Segoe UI", 11), bd=1, relief="solid", wrap="word")
     summary_text.pack(side="left", padx=10)
-    
 
     # Export Option
     option_frame = Frame(form_frame, bg="white")
