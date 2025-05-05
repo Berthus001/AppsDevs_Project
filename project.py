@@ -1,14 +1,16 @@
 import os
 import re
-from PIL import Image, ImageTk
+
+import win32ui
 from tkinter import *
 from tkinter import messagebox
 from reportlab.pdfgen import canvas
 import win32print
-import win32ui
 
+# Get path to Documents folder
 documents_path = os.path.join(os.path.expanduser("~"), "Documents")
 generated_filepath = ""
+
 
 def center_window(window, width, height):
     screen_width = window.winfo_screenwidth()
@@ -17,15 +19,48 @@ def center_window(window, width, height):
     y = int((screen_height / 2) - (height / 2))
     window.geometry(f"{width}x{height}+{x}+{y}")
 
+
 def get_next_filename(extension, username):
+    base = re.sub(r'\W+', '', username) or "resume"
+    n = 1
+    # Remove spaces and non-alphanumeric characters, and replace spaces with nothing
     base = re.sub(r'\W+', '', username.replace(" ", "")) or "resume"
     n = 0
     while True:
+        filename = f"{base}{n}.{extension.lower()}"
+        # Append number if n > 0, else use the base name
         filename = f"{base}{n if n > 0 else ''}.{extension.lower()}"
         full_path = os.path.join(documents_path, filename)
         if not os.path.exists(full_path):
             return full_path
         n += 1
+
+
+def save_resume():
+    global generated_filepath
+    name = name_entry.get()
+    email = email_entry.get()
+    phone = phone_entry.get()
+    summary = summary_text.get("1.0", END).strip()
+    filetype = file_type.get()
+
+    content = f"Name: {name}\nEmail: {email}\nPhone: {phone}\nSummary:\n{summary}"
+    generated_filepath = get_next_filename(filetype, name)
+
+    if filetype == "TXT":
+        with open(generated_filepath, "w") as f:
+            f.write(content)
+    elif filetype == "PDF":
+        pdf = canvas.Canvas(generated_filepath)
+        lines = content.split("\n")
+        y = 800
+        for line in lines:
+            pdf.drawString(50, y, line)
+            y -= 20
+        pdf.save()
+
+    status_label.config(text=f"Saved to: {generated_filepath}", fg="green")
+
 
 def print_direct():
     receipt_text = (
@@ -63,6 +98,7 @@ def print_direct():
     pdc.DeleteDC()
     status_label.config(text="Resume sent to printer.", fg="green")
 
+
 def main_app():
     global name_entry, email_entry, phone_entry, summary_text, file_type, status_label
 
@@ -71,11 +107,16 @@ def main_app():
     window_width = 700
     window_height = 800
     center_window(root, window_width, window_height)
-    root.config(bg="#f4f6f7")
+    root.config(bg="#f4f6f7")  # Light gray background
 
-    header = Label(root, text="\ud83d\udcdd Resume Builder", font=("Segoe UI", 26, "bold"), bg="#f4f6f7", fg="#2c3e50")
+    # Header
+    header = Label(
+        root, text="📝 Resume Builder", font=("Segoe UI", 26, "bold"),
+        bg="#f4f6f7", fg="#2c3e50"
+    )
     header.pack(pady=30)
 
+    # Main frame
     form_frame = Frame(root, bg="white", bd=2, relief="groove")
     form_frame.pack(padx=30, pady=10, fill="both", expand=True)
 
@@ -92,6 +133,7 @@ def main_app():
     email_entry = create_labeled_entry("Email")
     phone_entry = create_labeled_entry("Phone")
 
+    # Summary Section
     summary_frame = Frame(form_frame, bg="white")
     summary_frame.pack(fill="x", pady=10, padx=20)
 
@@ -101,6 +143,7 @@ def main_app():
     summary_text = Text(summary_frame, width=40, height=6, font=("Segoe UI", 11), bd=1, relief="solid", wrap="word")
     summary_text.pack(side="left", padx=10)
 
+    # Export Option
     option_frame = Frame(form_frame, bg="white")
     option_frame.pack(fill="x", pady=10, padx=20)
     Label(option_frame, text="Export As", width=12, anchor="w", font=("Segoe UI", 11), bg="white").pack(side=LEFT)
@@ -109,22 +152,32 @@ def main_app():
     dropdown.config(font=("Segoe UI", 10), width=10)
     dropdown.pack(side=LEFT, padx=10)
 
+    # Button Frame
     button_frame = Frame(form_frame, bg="white")
     button_frame.pack(pady=20)
+    Button(
+        button_frame, text="Generate Resume", command=save_resume,
+        width=18, bg="#27AE60", fg="white", font=("Segoe UI", 11, "bold"), relief="flat", padx=10, pady=5
+    ).pack(side=LEFT, padx=10)
 
     Button(
         button_frame, text="Print Resume", command=print_direct,
         width=18, bg="#2980B9", fg="white", font=("Segoe UI", 11, "bold"), relief="flat", padx=10, pady=5
     ).pack(side=LEFT, padx=10)
 
-    status_label = Label(root, text="", font=("Segoe UI", 10), bg="#f4f6f7", fg="red")
+    # Status Label
+    status_label = Label(
+        root, text="", font=("Segoe UI", 10), bg="#f4f6f7", fg="red"
+    )
     status_label.pack(pady=10)
 
     root.mainloop()
 
+
 def show_resume_builder():
     login_root.destroy()
     main_app()
+
 
 def login():
     username = username_entry.get()
@@ -138,6 +191,7 @@ def login():
                 messagebox.showerror("Login Failed", "Wrong username or password")
     except FileNotFoundError:
         messagebox.showerror("Error", "No users registered yet")
+
 
 def create_account():
     username = username_entry.get()
@@ -154,6 +208,7 @@ def create_account():
     with open("users.txt", "a") as f:
         f.write(f"{username}:{password}\n")
     messagebox.showinfo("Success", "Account created. You can now log in.")
+
 
 login_root = Tk()
 login_root.title("Login - Resume Builder")
@@ -172,7 +227,9 @@ Label(frame, text="Password", font=("Segoe UI", 10), bg="white").pack()
 password_entry = Entry(frame, show="*", width=30, font=("Segoe UI", 10))
 password_entry.pack(pady=5)
 
-Button(frame, text="Login", command=login, width=15, bg="#4CAF50", fg="white", font=("Segoe UI", 10, "bold")).pack(pady=5)
-Button(frame, text="Create Account", command=create_account, width=15, bg="#2196F3", fg="white", font=("Segoe UI", 10, "bold")).pack()
+Button(frame, text="Login", command=login, width=15, bg="#4CAF50", fg="white", font=("Segoe UI", 10, "bold")).pack(
+    pady=5)
+Button(frame, text="Create Account", command=create_account, width=15, bg="#2196F3", fg="white",
+       font=("Segoe UI", 10, "bold")).pack()
 
 login_root.mainloop()
