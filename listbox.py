@@ -30,30 +30,9 @@ def get_next_filename(extension, username):
             return full_path
         n += 1
 
-def save_resume():
-    global generated_filepath
-    name = name_entry.get()
-    email = email_entry.get()
-    phone = phone_entry.get()
-    summary = summary_text.get("1.0", END).strip()
-    filetype = file_type.get()
-
-    content = f"Name: {name}\nEmail: {email}\nPhone: {phone}\nSummary:\n{summary}"
-    generated_filepath = get_next_filename(filetype, name)
-
-    if filetype == "TXT":
-        with open(generated_filepath, "w") as f:
-            f.write(content)
-    elif filetype == "PDF":
-        pdf = canvas.Canvas(generated_filepath)
-        lines = content.split("\n")
-        y = 800
-        for line in lines:
-            pdf.drawString(50, y, line)
-            y -= 20
-        pdf.save()
-
-    status_label.config(text=f"Saved to: {generated_filepath}", fg="green")
+import os
+import win32print
+import win32api
 
 def print_resume():
     global generated_filepath
@@ -96,6 +75,10 @@ def print_resume():
                 status_label.config(text=f"Error printing {generated_filepath}: {str(e)}", fg="red")
             finally:
                 win32print.ClosePrinter(printer)
+
+    except Exception as e:
+        status_label.config(text=f"Error printing {generated_filepath}: {str(e)}", fg="red")
+
 
     except Exception as e:
         status_label.config(text=f"Error printing {generated_filepath}: {str(e)}", fg="red")
