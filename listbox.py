@@ -60,27 +60,36 @@ def print_resume():
     if not os.path.exists(generated_filepath):
         status_label.config(text=f"Error: File not found: {generated_filepath}", fg="red")
         return
-    if file_type.get() == "TXT":
-        print_txt(generated_filepath)
-    elif file_type.get() == "PDF":
-        print_pdf(generated_filepath)
 
-def print_txt(filepath):
-    with open(filepath, 'r') as file:
-        content = file.read()
-    printer_name = win32print.GetDefaultPrinter()
-    printer = win32print.OpenPrinter(printer_name)
     try:
-        win32print.StartDocPrinter(printer, 1, ("Resume", None, "RAW"))
-        win32print.StartPagePrinter(printer)
-        win32print.WritePrinter(printer, content.encode())
-        win32print.EndPagePrinter(printer)
-        win32print.EndDocPrinter(printer)
-        status_label.config(text=f"Printing {filepath}...", fg="blue")
+        if generated_filepath.lower().endswith(".pdf"):
+            # For PDF files, send directly to the printer
+            printer_name = win32print.GetDefaultPrinter()  # Get the default printer
+            win32api.ShellExecute(0, "print", generated_filepath, f'/d:"{printer_name}"', ".", 0)
+            status_label.config(text=f"Printing {generated_filepath}...", fg="blue")
+
+        elif generated_filepath.lower().endswith(".txt"):
+            # For TXT files, print directly using win32print
+            with open(generated_filepath, 'r') as file:
+                content = file.read()
+            
+            printer_name = win32print.GetDefaultPrinter()
+            printer = win32print.OpenPrinter(printer_name)
+            try:
+                # Start the print job
+                win32print.StartDocPrinter(printer, 1, ("Resume", None, "RAW"))
+                win32print.StartPagePrinter(printer)
+                win32print.WritePrinter(printer, content.encode())  # Send content to printer
+                win32print.EndPagePrinter(printer)
+                win32print.EndDocPrinter(printer)
+                status_label.config(text=f"Printing {generated_filepath}...", fg="blue")
+            except Exception as e:
+                status_label.config(text=f"Error printing {generated_filepath}: {str(e)}", fg="red")
+            finally:
+                win32print.ClosePrinter(printer)
+
     except Exception as e:
-        status_label.config(text=f"Error printing {filepath}: {str(e)}", fg="red")
-    finally:
-        win32print.ClosePrinter(printer)
+        status_label.config(text=f"Error printing {generated_filepath}: {str(e)}", fg="red")
 
 def print_pdf(filepath):
     try:
