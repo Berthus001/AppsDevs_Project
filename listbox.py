@@ -79,10 +79,6 @@ def print_resume():
     except Exception as e:
         status_label.config(text=f"Error printing {generated_filepath}: {str(e)}", fg="red")
 
-
-    except Exception as e:
-        status_label.config(text=f"Error printing {generated_filepath}: {str(e)}", fg="red")
-
 def print_pdf(filepath):
     try:
         win32api.ShellExecute(0, "print", filepath, None, ".", 0)
