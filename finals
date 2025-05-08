@@ -119,7 +119,7 @@ def save_resume():
         status_label.configure(text=f"Error saving file: {str(e)}", text_color="red")
 
 def print_resume():
-    # Resume content
+    # Resume content in lines
     lines = [
         f"Name: {name_entry.get()}",
         f"Email: {email_entry.get()}",
@@ -140,25 +140,25 @@ def print_resume():
     pdc.StartDoc("Resume Print")
     pdc.StartPage()
 
-    # Font setup (large and clear)
+    # Font setup
     font = win32ui.CreateFont({
-        "name": "Courier New",  # Monospaced for better alignment
+        "name": "Courier New",
         "height": 50,
         "weight": 700,
     })
     pdc.SelectObject(font)
 
-    # Calculate center based on page width
+    # Measure longest line to center the block
+    max_line_width = max(pdc.GetTextExtent(line)[0] for line in lines)
     page_width = pdc.GetDeviceCaps(110)  # HORZRES
-    y = 100  # Starting Y position
+    x_start = (page_width - max_line_width) // 2  # Anchor W start of text block
 
+    # Print lines
+    y = 100
     for line in lines:
-        text_width = pdc.GetTextExtent(line)[0]
-        x = (page_width - text_width) // 2  # Centered X
-        pdc.TextOut(x, y, line)
-        y += 70  # Line spacing
+        pdc.TextOut(x_start, y, line)  # Left-aligned within the centered block
+        y += 70
 
-    # Finalize print
     pdc.EndPage()
     pdc.EndDoc()
     pdc.DeleteDC()
