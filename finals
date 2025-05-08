@@ -119,17 +119,20 @@ def save_resume():
         status_label.configure(text=f"Error saving file: {str(e)}", text_color="red")
 
 def print_resume():
-    receipt_text = (
-        "Resume Print Receipt\n"
-        "----------------------------\n"
-        f"Name: {name_entry.get()}\n"
-        f"Email: {email_entry.get()}\n"
-        f"Phone: {phone_entry.get()}\n"
-        "----------------------------\n"
-        f"Working Experience:\n{working_experience_entry.get()}\n\n"
-        f"Summary:\n{summary_text.get('1.0', END).strip()}\n"
-    )
+    # Resume content
+    lines = [
+        f"Name: {name_entry.get()}",
+        f"Email: {email_entry.get()}",
+        f"Phone: {phone_entry.get()}",
+        "",
+        "Working Experience:",
+        working_experience_entry.get(),
+        "",
+        "Summary:",
+        summary_text.get("1.0", END).strip()
+    ]
 
+    # Printer setup
     printer_name = win32print.GetDefaultPrinter()
     hprinter = win32print.OpenPrinter(printer_name)
     pdc = win32ui.CreateDC()
@@ -137,27 +140,25 @@ def print_resume():
     pdc.StartDoc("Resume Print")
     pdc.StartPage()
 
+    # Font setup (large and clear)
     font = win32ui.CreateFont({
-        "name": "Courier New",  # Monospaced for consistent width
+        "name": "Courier New",  # Monospaced for better alignment
         "height": 50,
         "weight": 700,
     })
     pdc.SelectObject(font)
 
-    # Get printable area width
-    printable_area = pdc.GetDeviceCaps(110)  # HORZRES
-    y = 100
+    # Calculate center based on page width
+    page_width = pdc.GetDeviceCaps(110)  # HORZRES
+    y = 100  # Starting Y position
 
-    for line in receipt_text.split("\n"):
-        # Get width of the line in pixels
-        text_size = pdc.GetTextExtent(line)
-        text_width = text_size[0]
-
-        # Center X position
-        x = (printable_area - text_width) // 2
+    for line in lines:
+        text_width = pdc.GetTextExtent(line)[0]
+        x = (page_width - text_width) // 2  # Centered X
         pdc.TextOut(x, y, line)
-        y += 60  # Line spacing
+        y += 70  # Line spacing
 
+    # Finalize print
     pdc.EndPage()
     pdc.EndDoc()
     pdc.DeleteDC()
