@@ -7,6 +7,7 @@ from reportlab.pdfgen import canvas
 import win32print
 import win32ui
 
+
 # Initialize theme
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -14,6 +15,13 @@ ctk.set_default_color_theme("blue")
 # Path for resume
 documents_path = os.path.join(os.path.expanduser("~"), "Documents")
 generated_filepath = ""
+
+# Function to toggle password visibility
+def toggle_password_visibility():
+    if show_password_checkbox.get():
+        password_entry.configure(show="")
+    else:
+        password_entry.configure(show="*")
 
 # Login Page Code First
 def login():
@@ -67,103 +75,67 @@ def get_next_filename(extension, username):
             return full_path
         n += 1
 
-
+# Main Resume Builder App Code
 def save_resume():
-    global generated_filepath
     name = name_entry.get()
     email = email_entry.get()
     phone = phone_entry.get()
-    summary = summary_text.get("1.0", "end").strip()
     working_experience = working_experience_entry.get()
-    filetype = file_type.get()
+    summary = summary_text.get("1.0", END).strip()
+    file_extension = file_type.get().lower()
 
-    lines = [
-        f"Name: {name}",
-        f"Email: {email}",
-        f"Phone: {phone}",
-        "",
-        "Working Experience:",
-        working_experience,
-        "",
-        "Summary:",
-        summary
-    ]
+    if not name or not email or not phone:
+        messagebox.showerror("Error", "Please fill in all required fields")
+        return
 
-    content = "\n".join(lines)
-    generated_filepath = get_next_filename(filetype, name)
+    global generated_filepath
+    generated_filepath = get_next_filename(file_extension, name)
 
-    try:
-        if filetype == "TXT":
-            with open(generated_filepath, "w") as f:
-                f.write(content)
-            status_label.configure(text=f"Saved to: {generated_filepath}", text_color="green")
+    if file_extension == "pdf":
+        save_as_pdf(name, email, phone, working_experience, summary)
+    else:
+        save_as_txt(name, email, phone, working_experience, summary)
 
-        elif filetype == "PDF":
-            pdf = canvas.Canvas(generated_filepath, pagesize=letter)
-            pdf.setFont("Helvetica", 14)
-            width, height = letter
+    status_label.configure(text=f"Resume saved as {generated_filepath}")
 
-            # Get max text width for center alignment
-            max_line_width = max(pdf.stringWidth(line, "Helvetica", 14) for line in lines)
-            x = (width - max_line_width) / 2
-            y = height - 100
+def save_as_pdf(name, email, phone, working_experience, summary):
+    c = canvas.Canvas(generated_filepath, pagesize=letter)
+    c.setFont("Helvetica", 12)
+    c.drawString(100, 750, f"Name: {name}")
+    c.drawString(100, 730, f"Email: {email}")
+    c.drawString(100, 710, f"Phone: {phone}")
+    c.drawString(100, 690, f"Working Experience: {working_experience}")
+    c.drawString(100, 670, f"Summary: {summary}")
+    c.save()
 
-            for line in lines:
-                pdf.drawString(x, y, line)
-                y -= 25  # Spacing between lines
-
-            pdf.save()
-            status_label.configure(text=f"Saved to: {generated_filepath}", text_color="green")
-
-    except Exception as e:
-        status_label.configure(text=f"Error saving file: {str(e)}", text_color="red")
+def save_as_txt(name, email, phone, working_experience, summary):
+    with open(generated_filepath, "w") as f:
+        f.write(f"Name: {name}\n")
+        f.write(f"Email: {email}\n")
+        f.write(f"Phone: {phone}\n")
+        f.write(f"Working Experience: {working_experience}\n")
+        f.write(f"Summary: {summary}\n")
 
 def print_resume():
-    # Resume content in lines
-    lines = [
-        f"Name: {name_entry.get()}",
-        f"Email: {email_entry.get()}",
-        f"Phone: {phone_entry.get()}",
-        "",
-        "Working Experience:",
-        working_experience_entry.get(),
-        "",
-        "Summary:",
-        summary_text.get("1.0", END).strip()
-    ]
+    if not generated_filepath:
+        messagebox.showerror("Error", "No resume generated yet!")
+        return
 
-    # Printer setup
     printer_name = win32print.GetDefaultPrinter()
-    hprinter = win32print.OpenPrinter(printer_name)
-    pdc = win32ui.CreateDC()
-    pdc.CreatePrinterDC(printer_name)
-    pdc.StartDoc("Resume Print")
-    pdc.StartPage()
+    print_job = win32print.OpenPrinter(printer_name)
+    printer_info = win32print.GetPrinter(print_job, 2)
 
-    # Font setup
-    font = win32ui.CreateFont({
-        "name": "Courier New",
-        "height": 50,
-        "weight": 700,
-    })
-    pdc.SelectObject(font)
+    hprinter = win32ui.CreateDC()
+    hprinter.CreatePrinterDC(printer_name)
+    hprinter.StartDoc(generated_filepath)
+    hprinter.StartPage()
 
-    # Measure longest line to center the block
-    max_line_width = max(pdc.GetTextExtent(line)[0] for line in lines)
-    page_width = pdc.GetDeviceCaps(110)  # HORZRES
-    x_start = (page_width - max_line_width) // 2  # Anchor W start of text block
+    hprinter.DrawText("Printing Resume...", (100, 100))
+    hprinter.EndPage()
+    hprinter.EndDoc()
+    hprinter.DeleteDC()
 
-    # Print lines
-    y = 100
-    for line in lines:
-        pdc.TextOut(x_start, y, line)  # Left-aligned within the centered block
-        y += 70
-
-    pdc.EndPage()
-    pdc.EndDoc()
-    pdc.DeleteDC()
-
-# Main Resume Builder App Code
+# Main UI
 def main_app():
     global name_entry, email_entry, phone_entry, working_experience_entry, summary_text, file_type, status_label
 
@@ -218,6 +190,10 @@ username_entry = ctk.CTkEntry(frame, placeholder_text="Username")
 username_entry.pack(pady=5)
 password_entry = ctk.CTkEntry(frame, placeholder_text="Password", show="*")
 password_entry.pack(pady=5)
+
+# Show Password Checkbox with design adjustments
+show_password_checkbox = ctk.CTkCheckBox(frame, text="Show Password", command=toggle_password_visibility)
+show_password_checkbox.pack(pady=(5, 15))  # Adjusted padding for better spacing
 
 ctk.CTkButton(frame, text="Login", command=login).pack(pady=5)
 ctk.CTkButton(frame, text="Create Account", command=create_account).pack(pady=5)
