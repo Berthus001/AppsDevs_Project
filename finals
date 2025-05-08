@@ -1,0 +1,224 @@
+import os
+import re
+import customtkinter as ctk
+from tkinter import messagebox, END
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import win32print
+import win32ui
+
+# Initialize theme
+ctk.set_appearance_mode("light")
+ctk.set_default_color_theme("blue")
+
+# Path for resume
+documents_path = os.path.join(os.path.expanduser("~"), "Documents")
+generated_filepath = ""
+
+# Login Page Code First
+def login():
+    username = username_entry.get()
+    password = password_entry.get()
+    try:
+        with open("users.txt", "r") as f:
+            users = f.read().splitlines()
+            if f"{username}:{password}" in users:
+                show_resume_builder()
+            else:
+                messagebox.showerror("Login Failed", "Wrong username or password")
+    except FileNotFoundError:
+        messagebox.showerror("Error", "No users registered yet")
+
+def create_account():
+    username = username_entry.get()
+    password = password_entry.get()
+    if not username or not password:
+        messagebox.showerror("Error", "Please fill in both fields")
+        return
+    if os.path.exists("users.txt"):
+        with open("users.txt", "r") as f:
+            existing_users = [line.split(":")[0] for line in f]
+        if username in existing_users:
+            messagebox.showerror("Error", "Username already exists")
+            return
+    with open("users.txt", "a") as f:
+        f.write(f"{username}:{password}\n")
+    messagebox.showinfo("Success", "Account created. You can now log in.")
+
+def show_resume_builder():
+    login_root.destroy()
+    main_app()
+
+# Helper functions
+def center_window(window, width, height):
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = int((screen_width / 2) - (width / 2))
+    y = int((screen_height / 2) - (height / 2))
+    window.geometry(f"{width}x{height}+{x}+{y}")
+
+def get_next_filename(extension, username):
+    base = re.sub(r'\W+', '', username.replace(" ", "")) or "resume"
+    n = 0
+    while True:
+        filename = f"{base}{n if n > 0 else ''}.{extension.lower()}"
+        full_path = os.path.join(documents_path, filename)
+        if not os.path.exists(full_path):
+            return full_path
+        n += 1
+
+
+def save_resume():
+    global generated_filepath
+    name = name_entry.get()
+    email = email_entry.get()
+    phone = phone_entry.get()
+    summary = summary_text.get("1.0", "end").strip()
+    working_experience = working_experience_entry.get()
+    filetype = file_type.get()
+
+    lines = [
+        f"Name: {name}",
+        f"Email: {email}",
+        f"Phone: {phone}",
+        "",
+        "Working Experience:",
+        working_experience,
+        "",
+        "Summary:",
+        summary
+    ]
+
+    content = "\n".join(lines)
+    generated_filepath = get_next_filename(filetype, name)
+
+    try:
+        if filetype == "TXT":
+            with open(generated_filepath, "w") as f:
+                f.write(content)
+            status_label.configure(text=f"Saved to: {generated_filepath}", text_color="green")
+
+        elif filetype == "PDF":
+            pdf = canvas.Canvas(generated_filepath, pagesize=letter)
+            pdf.setFont("Helvetica", 14)
+            width, height = letter
+
+            # Get max text width for center alignment
+            max_line_width = max(pdf.stringWidth(line, "Helvetica", 14) for line in lines)
+            x = (width - max_line_width) / 2
+            y = height - 100
+
+            for line in lines:
+                pdf.drawString(x, y, line)
+                y -= 25  # Spacing between lines
+
+            pdf.save()
+            status_label.configure(text=f"Saved to: {generated_filepath}", text_color="green")
+
+    except Exception as e:
+        status_label.configure(text=f"Error saving file: {str(e)}", text_color="red")
+
+def print_resume():
+    receipt_text = (
+        "Resume Print Receipt\n"
+        "----------------------------\n"
+        f"Name: {name_entry.get()}\n"
+        f"Email: {email_entry.get()}\n"
+        f"Phone: {phone_entry.get()}\n"
+        "----------------------------\n"
+        f"Working Experience:\n{working_experience_entry.get()}\n\n"
+        f"Summary:\n{summary_text.get('1.0', END).strip()}\n"
+    )
+
+    printer_name = win32print.GetDefaultPrinter()
+    hprinter = win32print.OpenPrinter(printer_name)
+    pdc = win32ui.CreateDC()
+    pdc.CreatePrinterDC(printer_name)
+    pdc.StartDoc("Resume Print")
+    pdc.StartPage()
+
+    font = win32ui.CreateFont({
+        "name": "Courier New",  # Monospaced for consistent width
+        "height": 50,
+        "weight": 700,
+    })
+    pdc.SelectObject(font)
+
+    # Get printable area width
+    printable_area = pdc.GetDeviceCaps(110)  # HORZRES
+    y = 100
+
+    for line in receipt_text.split("\n"):
+        # Get width of the line in pixels
+        text_size = pdc.GetTextExtent(line)
+        text_width = text_size[0]
+
+        # Center X position
+        x = (printable_area - text_width) // 2
+        pdc.TextOut(x, y, line)
+        y += 60  # Line spacing
+
+    pdc.EndPage()
+    pdc.EndDoc()
+    pdc.DeleteDC()
+
+# Main Resume Builder App Code
+def main_app():
+    global name_entry, email_entry, phone_entry, working_experience_entry, summary_text, file_type, status_label
+
+    root = ctk.CTk()
+    root.title("Resume Builder")
+    center_window(root, 700, 800)
+
+    ctk.CTkLabel(root, text="📝 Resume Builder", font=("Segoe UI", 26, "bold")).pack(pady=20)
+
+    form_frame = ctk.CTkFrame(root)
+    form_frame.pack(pady=10, padx=20, fill="both", expand=True)
+
+    def create_labeled_entry(label_text):
+        label = ctk.CTkLabel(form_frame, text=label_text, font=("Segoe UI", 12))
+        label.pack(pady=(10, 0))
+        entry = ctk.CTkEntry(form_frame, width=300)
+        entry.pack(pady=5)
+        return entry
+
+    name_entry = create_labeled_entry("Full Name")
+    email_entry = create_labeled_entry("Email")
+    phone_entry = create_labeled_entry("Phone")
+    working_experience_entry = create_labeled_entry("Working Experience")  # New field
+
+    ctk.CTkLabel(form_frame, text="Summary", font=("Segoe UI", 12)).pack(pady=(10, 0))
+    summary_text = ctk.CTkTextbox(form_frame, width=400, height=120)
+    summary_text.pack(pady=5)
+
+    ctk.CTkLabel(form_frame, text="Export As", font=("Segoe UI", 12)).pack(pady=(15, 5))
+    file_type = ctk.StringVar(value="PDF")
+    file_dropdown = ctk.CTkOptionMenu(form_frame, values=["PDF", "TXT"], variable=file_type)
+    file_dropdown.pack()
+
+    ctk.CTkButton(form_frame, text="Generate Resume", command=save_resume, fg_color="#27AE60").pack(pady=10)
+    ctk.CTkButton(form_frame, text="Print Resume", command=print_resume, fg_color="#2980B9").pack(pady=5)
+
+    status_label = ctk.CTkLabel(root, text="", font=("Segoe UI", 10))
+    status_label.pack(pady=10)
+
+    root.mainloop()
+
+# Login Page UI
+login_root = ctk.CTk()
+login_root.title("Login - Resume Builder")
+center_window(login_root, 400, 300)
+
+frame = ctk.CTkFrame(login_root)
+frame.pack(pady=20, padx=30, fill="both", expand=True)
+
+ctk.CTkLabel(frame, text="Login or Create Account", font=("Segoe UI", 16, "bold")).pack(pady=15)
+username_entry = ctk.CTkEntry(frame, placeholder_text="Username")
+username_entry.pack(pady=5)
+password_entry = ctk.CTkEntry(frame, placeholder_text="Password", show="*")
+password_entry.pack(pady=5)
+
+ctk.CTkButton(frame, text="Login", command=login).pack(pady=5)
+ctk.CTkButton(frame, text="Create Account", command=create_account).pack(pady=5)
+
+login_root.mainloop()
