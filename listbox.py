@@ -237,56 +237,16 @@ def save_resume():
 def print_resume():
     try:
         # Resume content in lines
+      def print_resume():
+    try:
         name = name_entry.get()
         email = email_entry.get()
         phone = phone_entry.get()
-        address = Address_entry.get()
+        address = address_entry.get()
         skills = skills_entry.get("1.0", END).strip()
         education = education_entry.get("1.0", END).strip()
         working_experience = working_experience_entry.get("1.0", END).strip()
         summary = summary_text.get("1.0", END).strip()
-
-        # Prepare lines in the order of PDF layout
-        lines = []
-
-        # Title - Name
-        lines.append(f"{name}")
-        lines.append("") 
-        lines.append("-" * 80)
-        lines.append("") 
-
-        # Personal Info
-        lines.append("Personal Info:")
-        lines.append(f"📧 {email}")
-        lines.append(f"📞 {phone}")
-        lines.append(f"🏡 {address}")
-        lines.append("") 
-        lines.append("-" * 80)
-        lines.append("") 
-
-        # Skills
-        lines.append("Skills:")
-        lines.append(skills)
-        lines.append("") 
-        lines.append("-" * 80)
-        lines.append("") 
-
-        # Education
-        lines.append("Education:")
-        lines.extend(education.splitlines())
-        lines.append("-" * 80)
-        lines.append("") 
-
-        # Working Experience
-        lines.append("Working Experience:")
-        lines.extend(working_experience.splitlines())
-        lines.append("") 
-        lines.append("-" * 80)
-        lines.append("") 
-
-        # Summary
-        lines.append("Professional Summary:")
-        lines.extend(summary.splitlines())
 
         # Printer setup
         printer_name = win32print.GetDefaultPrinter()
@@ -299,38 +259,87 @@ def print_resume():
         pdc.StartDoc("Resume Print")
         pdc.StartPage()
 
-        # Font setup
-        font = win32ui.CreateFont({
+        # Fonts
+        name_font = win32ui.CreateFont({
             "name": "Courier New",
-            "height": 120,
+            "height": 200,   # Larger for name
+            "weight": 900,
+        })
+        title_font = win32ui.CreateFont({
+            "name": "Courier New",
+            "height": 160,   # Section titles
             "weight": 700,
         })
-        pdc.SelectObject(font)
+        content_font = win32ui.CreateFont({
+            "name": "Courier New",
+            "height": 120,   # Regular content
+            "weight": 400,
+        })
 
-        # Start coordinates
         x = 100
         y = 100
 
-        # Print image if exists
-        if image_filepath and os.path.exists(image_filepath):
-            try:
-                img = Image.open(image_filepath)
-                img = img.resize((144, 144))
-                dib = ImageWin.Dib(img)
+        # Print Name
+        pdc.SelectObject(name_font)
+        pdc.TextOut(x, y, name)
+        y += 300  # More space after name
 
-                # Draw image to top-right
-                page_width = pdc.GetDeviceCaps(110)  # HORZRES
-                img_x = page_width - 300
-                img_y = 100
-                dib.draw(pdc.GetHandleOutput(), (img_x, img_y, img_x + 144, img_y + 144))
+        pdc.SelectObject(content_font)
+        # Personal Info
+        pdc.TextOut(x, y, f"📧 {email}")
+        y += 100
+        pdc.TextOut(x, y, f"📞 {phone}")
+        y += 100
+        pdc.TextOut(x, y, f"🏡 {address}")
+        y += 150  # Larger space after personal info
 
-            except Exception as img_err:
-                messagebox.showerror("Image Error", f"Failed to load or print image:\n{str(img_err)}")
-
-        # Print each line
-        for line in lines:
+        # Skills
+        pdc.SelectObject(title_font)
+        pdc.TextOut(x, y, "Skills:")
+        y += 100  # Larger space after title
+        pdc.SelectObject(content_font)
+        for line in skills.splitlines():
             pdc.TextOut(x, y, line)
-            y += 70
+            y += 100  # Larger spacing between lines
+
+        y += 100  # Extra space before next section
+
+        # Education
+        pdc.SelectObject(title_font)
+        pdc.TextOut(x, y, "Education:")
+        y += 100  # Larger space after title
+        pdc.SelectObject(content_font)
+        for line in education.splitlines():
+            pdc.TextOut(x, y, line)
+            y += 100  # Larger spacing between lines
+
+        y += 100  # Extra space before next section
+
+        # Working Experience
+        pdc.SelectObject(title_font)
+        pdc.TextOut(x, y, "Working Experience:")
+        y += 100  # Larger space after title
+        pdc.SelectObject(content_font)
+        # Text wrapping for long lines in Working Experience
+        for line in working_experience.splitlines():
+            wrapped_lines = wrap(line, width=80)  # Wrap text to fit width
+            for wrapped_line in wrapped_lines:
+                pdc.TextOut(x, y, wrapped_line)
+                y += 100  # Larger spacing between lines
+
+        y += 100  # Extra space before next section
+
+        # Summary
+        pdc.SelectObject(title_font)
+        pdc.TextOut(x, y, "Professional Summary:")
+        y += 100  # Larger space after title
+        pdc.SelectObject(content_font)
+        # Text wrapping for long lines in Summary
+        for line in summary.splitlines():
+            wrapped_lines = wrap(line, width=80)  # Wrap text to fit width
+            for wrapped_line in wrapped_lines:
+                pdc.TextOut(x, y, wrapped_line)
+                y += 100  # Larger spacing between lines
 
         pdc.EndPage()
         pdc.EndDoc()
