@@ -1,169 +1,23 @@
 import os
 import re
-from PIL import Image, ImageTk
-from tkinter import *
-from tkinter import messagebox
+import customtkinter as ctk
+from tkinter import END, messagebox, filedialog
+from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import win32print
-import win32api
+import win32ui
+from PIL import Image, ImageTk, ImageWin
 
-# Get path to Documents folder
+# Initialize theme
+ctk.set_appearance_mode("light")
+ctk.set_default_color_theme("blue")
+
+# Path for resume
 documents_path = os.path.join(os.path.expanduser("~"), "Documents")
 generated_filepath = ""
+image_filepath = None  # Initialize image_filepath to avoid uninitialized variable usage
 
-def center_window(window, width, height):
-    screen_width = window.winfo_screenwidth()
-    screen_height = window.winfo_screenheight()
-    x = int((screen_width / 2) - (width / 2))
-    y = int((screen_height / 2) - (height / 2))
-    window.geometry(f"{width}x{height}+{x}+{y}")
-
-def get_next_filename(extension, username):
-    # Remove spaces and non-alphanumeric characters, and replace spaces with nothing
-    base = re.sub(r'\W+', '', username.replace(" ", "")) or "resume"
-    n = 0
-    while True:
-        # Append number if n > 0, else use the base name
-        filename = f"{base}{n if n > 0 else ''}.{extension.lower()}"
-        full_path = os.path.join(documents_path, filename)
-        if not os.path.exists(full_path):
-            return full_path
-        n += 1
-
-import os
-import win32print
-import win32api
-
-def print_resume():
-    global generated_filepath
-    if not os.path.exists(generated_filepath):
-        status_label.config(text=f"Error: File not found: {generated_filepath}", fg="red")
-        return
-
-    try:
-        if generated_filepath.lower().endswith(".pdf"):
-            # For PDF files, ensure correct handling
-            printer_name = win32print.GetDefaultPrinter()  # Get the default printer
-            print(f"Printing PDF: {generated_filepath} on {printer_name}")
-
-            # Use ShellExecute to send the PDF directly to the default printer
-            result = win32api.ShellExecute(0, "print", generated_filepath, f'/d:"{printer_name}"', ".", 0)
-            if result <= 32:
-                status_label.config(text=f"Error printing {generated_filepath}: ShellExecute failed.", fg="red")
-            else:
-                status_label.config(text=f"Printing {generated_filepath}...", fg="blue")
-
-        elif generated_filepath.lower().endswith(".txt"):
-            # For TXT files, print directly using win32print
-            with open(generated_filepath, 'r') as file:
-                content = file.read()
-
-            printer_name = win32print.GetDefaultPrinter()
-            print(f"Printing TXT: {generated_filepath} on {printer_name}")
-
-            # Open the printer and send the text to it
-            printer = win32print.OpenPrinter(printer_name)
-            try:
-                win32print.StartDocPrinter(printer, 1, ("Resume", None, "RAW"))
-                win32print.StartPagePrinter(printer)
-                # Encode content for printing
-                win32print.WritePrinter(printer, content.encode())
-                win32print.EndPagePrinter(printer)
-                win32print.EndDocPrinter(printer)
-                status_label.config(text=f"Printing {generated_filepath}...", fg="blue")
-            except Exception as e:
-                status_label.config(text=f"Error printing {generated_filepath}: {str(e)}", fg="red")
-            finally:
-                win32print.ClosePrinter(printer)
-
-    except Exception as e:
-        status_label.config(text=f"Error printing {generated_filepath}: {str(e)}", fg="red")
-
-def print_pdf(filepath):
-    try:
-        win32api.ShellExecute(0, "print", filepath, None, ".", 0)
-        status_label.config(text=f"Printing {filepath}...", fg="blue")
-    except Exception as e:
-        status_label.config(text=f"Error printing {filepath}: {str(e)}", fg="red")
-
-def main_app():
-    global name_entry, email_entry, phone_entry, summary_text, file_type, status_label
-
-    root = Tk()
-    root.title("Resume Builder")
-    window_width = 700
-    window_height = 800
-    center_window(root, window_width, window_height)
-    root.config(bg="#f4f6f7")  # Light gray background
-
-    # Header
-    header = Label(
-        root, text="📝 Resume Builder", font=("Segoe UI", 26, "bold"),
-        bg="#f4f6f7", fg="#2c3e50"
-    )
-    header.pack(pady=30)
-
-    # Main frame
-    form_frame = Frame(root, bg="white", bd=2, relief="groove")
-    form_frame.pack(padx=30, pady=10, fill="both", expand=True)
-
-    def create_labeled_entry(text):
-        frame = Frame(form_frame, bg="white")
-        frame.pack(fill="x", pady=10, padx=20)
-        label = Label(frame, text=text, width=12, anchor="w", font=("Segoe UI", 11), bg="white")
-        label.pack(side=LEFT)
-        entry = Entry(frame, width=40, font=("Segoe UI", 11), bd=1, relief="solid")
-        entry.pack(side=LEFT, padx=10)
-        return entry
-
-    name_entry = create_labeled_entry("Full Name")
-    email_entry = create_labeled_entry("Email")
-    phone_entry = create_labeled_entry("Phone")
-
-    # Summary Section
-    summary_frame = Frame(form_frame, bg="white")
-    summary_frame.pack(fill="x", pady=10, padx=20)
-
-    summary_label = Label(summary_frame, text="Summary", font=("Segoe UI", 11), bg="white", width=12, anchor="w")
-    summary_label.pack(side="left")
-
-    summary_text = Text(summary_frame, width=40, height=6, font=("Segoe UI", 11), bd=1, relief="solid", wrap="word")
-    summary_text.pack(side="left", padx=10)
-
-    # Export Option
-    option_frame = Frame(form_frame, bg="white")
-    option_frame.pack(fill="x", pady=10, padx=20)
-    Label(option_frame, text="Export As", width=12, anchor="w", font=("Segoe UI", 11), bg="white").pack(side=LEFT)
-    file_type = StringVar(value="PDF")
-    dropdown = OptionMenu(option_frame, file_type, "PDF", "TXT")
-    dropdown.config(font=("Segoe UI", 10), width=10)
-    dropdown.pack(side=LEFT, padx=10)
-
-    # Button Frame
-    button_frame = Frame(form_frame, bg="white")
-    button_frame.pack(pady=20)
-    Button(
-        button_frame, text="Generate Resume", command=save_resume,
-        width=18, bg="#27AE60", fg="white", font=("Segoe UI", 11, "bold"), relief="flat", padx=10, pady=5
-    ).pack(side=LEFT, padx=10)
-
-    Button(
-        button_frame, text="Print Resume", command=print_resume,
-        width=18, bg="#2980B9", fg="white", font=("Segoe UI", 11, "bold"), relief="flat", padx=10, pady=5
-    ).pack(side=LEFT, padx=10)
-
-    # Status Label
-    status_label = Label(
-        root, text="", font=("Segoe UI", 10), bg="#f4f6f7", fg="red"
-    )
-    status_label.pack(pady=10)
-
-    root.mainloop()
-
-def show_resume_builder():
-    login_root.destroy()
-    main_app()
-
+# Login Page Code First
 def login():
     username = username_entry.get()
     password = password_entry.get()
@@ -193,24 +47,395 @@ def create_account():
         f.write(f"{username}:{password}\n")
     messagebox.showinfo("Success", "Account created. You can now log in.")
 
-login_root = Tk()
+def toggle_password_visibility():
+    if show_password_checkbox.get():
+        password_entry.configure(show="")
+    else:
+        password_entry.configure(show="*")
+
+def show_resume_builder():
+    login_root.destroy()
+    main_app()
+
+def upload_photo():  # Declare as global to use in other functions
+    file_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.jpg *.jpeg *.png")])
+    if file_path:
+        global image_filepath
+        image_filepath = file_path  # Store the file path for later use
+        img = Image.open(file_path)
+        img = img.resize((192, 192))  # Resize to 2x2 inches (192x192 px)
+        img_tk = ImageTk.PhotoImage(img)
+        image_label.configure(image=img_tk, text="") 
+        image_label.image = img_tk  # Keep reference
+
+
+# Helper functions
+def center_window(window, width, height):
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = int((screen_width / 2) - (width / 2))
+    y = int((screen_height / 2) - (height / 2))
+    window.geometry(f"{width}x{height}+{x}+{y}")
+
+def get_next_filename(extension, username):
+    base = re.sub(r'\W+', '', username.replace(" ", "")) or "resume"
+    n = 0
+    while True:
+        filename = f"{base}{n if n > 0 else ''}.{extension.lower()}"
+        full_path = os.path.join(documents_path, filename)
+        if not os.path.exists(full_path):
+            return full_path
+        n += 1
+
+def clean_text(input_text):
+    # Replace multiple spaces with a single space and trim extra whitespace
+    return ' '.join(input_text.split())
+
+def save_resume():
+    global generated_filepath, image_filepath  # image_filepath stores the uploaded image path
+    name = name_entry.get()
+    email = email_entry.get()
+    phone = phone_entry.get()
+    address = Address_entry.get()
+    education = education_entry.get("1.0", "end").strip()
+    skills = skills_entry.get(  "1.0", "end").strip()
+    summary = summary_text.get("1.0", "end").strip()
+    working_experience = working_experience_entry.get("1.0", "end").strip()
+    filetype = file_type.get()
+
+    lines = [
+        f"{name}",
+        f"📧 {email}",
+        f"📞 {phone}",
+        f"🏡 {address}",
+        "",
+        "Skills:",
+        skills,
+        "",
+        "Education:",
+        education,
+        "",
+        "Working Experience:",
+        working_experience,
+        "",
+        "Summary:",
+        summary
+    ]
+    
+    content = "\n".join(lines)
+    generated_filepath = get_next_filename(filetype, name)
+
+    try:
+        if filetype == "TXT":
+            with open(generated_filepath, "w") as f:
+                f.write(content)
+            status_label.configure(text=f"Saved to: {generated_filepath}", text_color="green")
+
+        elif filetype == "PDF":
+            pdf = canvas.Canvas(generated_filepath, pagesize=letter)
+            pdf.setFont("Times-Roman", 12)
+            width, height = letter
+
+            # Title section (Name)
+            pdf.setFont("Times-Roman", 50)
+            pdf.drawString(72, height - 80, f"{name}")
+
+            # Draw the image (resume photo)
+            if image_filepath:
+                if os.path.exists(image_filepath):
+                    pdf.drawImage(image_filepath, width - 215, height - 150, width=144, height=144)
+                else:
+                    messagebox.showerror("Error", "Image file does not exist")
+                    return
+
+            # Draw a line separator
+            pdf.line(72, height - 160, width - 72, height - 160)
+
+        y_position = height - 220  # Start lower for more top margin
+
+        # Personal Info Section
+        pdf.setFont("Times-Roman", 16)
+        pdf.drawString(72, y_position + 35, "Personal Info:")  # Title raised a bit
+        y_position -= 30  # Space below the title
+
+        pdf.setFont("Times-Roman", 14)
+        pdf.drawString(72, y_position + 39, f"📧 {email}")
+        y_position -= 25
+        pdf.drawString(72, y_position + 39, f"📞 {phone}")
+        y_position -= 25
+        pdf.drawString(72, y_position + 39, f"🏡 {address}")
+        y_position -= 20
+        pdf.line(72, y_position+ 39, width - 72, y_position + 39)  # Line below personal info
+        y_position -= 40  # Extra space after section
+
+        # Skills Section
+        pdf.setFont("Times-Roman", 16)
+        pdf.drawString(72, y_position + 50, "Skills:")  # Title raised a bit
+        y_position -= 30
+
+        pdf.setFont("Times-Roman", 14)
+        pdf.drawString(72, y_position + 45, skills)
+        y_position -= 20
+        pdf.line(72, y_position, width - 72, y_position)
+        y_position -= 60
+
+        # Education Section
+        pdf.setFont("Times-Roman", 16)
+        pdf.drawString(72, y_position + 35, "Education:")  # Title raised a bit
+        y_position -= 30
+
+        pdf.setFont("Times-Roman", 14)
+        text_obj = pdf.beginText(72, y_position)
+
+        lines = education.splitlines()
+        for line in lines:
+            text_obj.textLine(line)
+            y_position -= 14  # Adjust spacing per line
+
+        pdf.drawText(text_obj)
+
+# Add spacing and draw the line after the block of text
+        y_position -= 10
+        pdf.line(72, y_position, width - 72, y_position)
+        y_position -= 60
+
+        # Working Experience Section
+        pdf.setFont("Times-Roman", 16)
+        pdf.drawString(72, y_position  + 35, "Working Experience:")  # Title raised a bit
+        y_position -= 30
+
+        pdf.setFont("Times-Roman", 14)
+        text_obj = pdf.beginText(72, y_position + 45)
+
+        for line in working_experience.splitlines():
+            text_obj.textLine(line)
+            y_position -= 14  # Adjust vertical spacing between lines
+
+        pdf.drawText(text_obj)
+        pdf.line(72, y_position, width - 72, y_position)
+        y_position -= 60
+
+        # Summary Section
+        pdf.setFont("Times-Roman", 16)
+        pdf.drawString(72, y_position + 35, "Professional Summary")  # Title raised a bit
+        y_position -= 30
+
+        pdf.setFont("Times-Roman", 14)
+        text_obj = pdf.beginText(72, y_position + 45)
+
+        for line in summary.splitlines():
+            text_obj.textLine(line)
+            y_position -= 14
+
+        pdf.drawText(text_obj)
+        
+            
+        pdf.save()
+        status_label.configure(text=f"Saved to: {generated_filepath}", text_color="green")
+
+    except Exception as e:
+        status_label.configure(text=f"Error: {str(e)}", text_color="red")
+
+def print_resume():
+    try:
+        # Resume content in lines
+        name = name_entry.get()
+        email = email_entry.get()
+        phone = phone_entry.get()
+        address = Address_entry.get()
+        skills = skills_entry.get("1.0", END).strip()
+        education = education_entry.get("1.0", END).strip()
+        working_experience = working_experience_entry.get("1.0", END).strip()
+        summary = summary_text.get("1.0", END).strip()
+
+        # Prepare lines in the order of PDF layout
+        lines = []
+
+        # Title - Name
+        lines.append(f"{name}")
+        lines.append("-" * 80)
+
+        # Personal Info
+        lines.append("Personal Info:")
+        lines.append(f"📧 {email}")
+        lines.append(f"📞 {phone}")
+        lines.append(f"🏡 {address}")
+        lines.append("-" * 80)
+
+        # Skills
+        lines.append("Skills:")
+        lines.append(skills)
+        lines.append("-" * 80)
+
+        # Education
+        lines.append("Education:")
+        lines.extend(education.splitlines())
+        lines.append("-" * 80)
+
+        # Working Experience
+        lines.append("Working Experience:")
+        lines.extend(working_experience.splitlines())
+        lines.append("-" * 80)
+
+        # Summary
+        lines.append("Professional Summary:")
+        lines.extend(summary.splitlines())
+
+        # Printer setup
+        printer_name = win32print.GetDefaultPrinter()
+        if not printer_name:
+            raise Exception("No default printer found.")
+
+        hprinter = win32print.OpenPrinter(printer_name)
+        pdc = win32ui.CreateDC()
+        pdc.CreatePrinterDC(printer_name)
+        pdc.StartDoc("Resume Print")
+        pdc.StartPage()
+
+        # Font setup
+        font = win32ui.CreateFont({
+            "name": "Courier New",
+            "height": 100,
+            "weight": 700,
+        })
+        pdc.SelectObject(font)
+
+        # Start coordinates
+        x = 100
+        y = 100
+
+        # Print image if exists
+        if image_filepath and os.path.exists(image_filepath):
+            try:
+                img = Image.open(image_filepath)
+                img = img.resize((144, 144))
+                dib = ImageWin.Dib(img)
+
+                # Draw image to top-right
+                page_width = pdc.GetDeviceCaps(110)  # HORZRES
+                img_x = page_width - 300
+                img_y = 100
+                dib.draw(pdc.GetHandleOutput(), (img_x, img_y, img_x + 144, img_y + 144))
+
+            except Exception as img_err:
+                messagebox.showerror("Image Error", f"Failed to load or print image:\n{str(img_err)}")
+
+        # Print each line
+        for line in lines:
+            pdc.TextOut(x, y, line)
+            y += 70
+
+        pdc.EndPage()
+        pdc.EndDoc()
+        pdc.DeleteDC()
+
+    except Exception as e:
+        messagebox.showerror("Printer Error", f"Unable to print the resume:\n{str(e)}")
+
+# Main Resume Builder App Code
+
+def main_app():
+    global name_entry, email_entry, phone_entry, working_experience_entry, summary_text, file_type, status_label, image_label, skills_entry,education_entry,Address_entry, generated_filepath
+
+    root = ctk.CTk()
+    root.title("Resume Builder")
+    root.geometry("1100x900")
+    center_window(root, 1100, 900)
+
+    root.resizable(True, True)
+
+    # Title
+    ctk.CTkLabel(root, text="📝 Resume Builder", font=("Segoe UI", 26, "bold")).grid(row=0, column=0, columnspan=2, pady=20)
+
+    # Main Form Frame (left column)
+    form_frame = ctk.CTkFrame(root ,width=800, height=750)
+    form_frame.grid_propagate(False)  # Prevent the frame from resizing to fit its contents
+    form_frame.grid(row=1, column=0, pady=10, padx=20, sticky="nsew")
+    
+    # Configure grid columns (left side for form fields, right side for buttons and image)
+    form_frame.grid_columnconfigure(0, weight=2)  # Left column for form fields (Full Name, etc.)
+    form_frame.grid_columnconfigure(1, weight=1)  # Right column for the working experience and summary
+   
+
+    # Helper function to create labeled entries
+    def create_labeled_entry(label_text, row, column, columnspan=1):
+        label = ctk.CTkLabel(form_frame, text=label_text, font=("Segoe UI", 12))
+        label.grid(row=row, column=column, pady=(10, 0), padx=20, sticky="w")
+        entry = ctk.CTkEntry(form_frame, width=600,)
+        entry.grid(row=row+1, column=column, pady=5, padx=20, sticky="w", columnspan=columnspan)
+        return entry
+
+    # Add form fields (left side)
+    name_entry = create_labeled_entry("Full Name", 0, 0)
+    phone_entry = create_labeled_entry("Phone", 2, 0)
+    email_entry = create_labeled_entry("Email", 4, 0)
+    Address_entry = create_labeled_entry("Address", 6, 0)
+    education_entry = create_labeled_entry("Education", 8, 0)
+
+    ctk.CTkLabel(form_frame, text="Skills", font=("Segoe UI", 12)).grid(row=10, column=0, pady=(10, 0), padx=20, sticky="w")
+    skills_entry = ctk.CTkTextbox(form_frame, width=500, height=180, border_color="gray", border_width=2)
+    skills_entry.grid(row=11, column=0, rowspan=5, pady=5, padx=20, sticky="w")
+
+    # RIGHT SIDE entries
+    ctk.CTkLabel(form_frame, text="Working Experience", font=("Segoe UI", 12)).grid(row=0, column=1, pady=(10, 0), padx=20, sticky="w")
+    working_experience_entry = ctk.CTkTextbox(form_frame, width=500, height=180, border_color="gray", border_width=2)
+    working_experience_entry.grid(row=1, column=1, rowspan=5, pady=5, padx=20, sticky="w")
+
+    ctk.CTkLabel(form_frame, text="Education", font=("Segoe UI", 12)).grid(row=6, column=1, pady=(10, 0), padx=20, sticky="w")
+    education_entry = ctk.CTkTextbox(form_frame, width=500, height=180, border_color="gray", border_width=2)
+    education_entry.grid(row=7, column=1, rowspan=5, pady=5, padx=20, sticky="w")
+
+    ctk.CTkLabel(form_frame, text="Summary", font=("Segoe UI", 12)).grid(row=12, column=1, pady=(10, 0), padx=20, sticky="w")
+    summary_text = ctk.CTkTextbox(form_frame, width=500, height=180, border_color="gray", border_width=2)
+    summary_text.grid(row=13, column=1, rowspan=5, columnspan=1, pady=5, padx=20, sticky="w")
+
+    # Second Frame for Upload Photo, File Type Dropdown, and Buttons
+    button_frame = ctk.CTkFrame(root)
+    button_frame.grid(row=1, column=1, padx=20, pady=10, sticky="nsew")
+
+    # Image Upload Section inside the second frame
+    image_frame = ctk.CTkFrame(button_frame, width=300, height=200)
+    image_frame.grid(row=0, column=0, padx=20, pady=10, sticky="w")
+    image_label = ctk.CTkLabel(image_frame, text="No photo uploaded", font=("Segoe UI", 12))
+    image_label.grid(row=0, column=0, pady=5)
+
+    upload_btn = ctk.CTkButton(image_frame, text="Upload Profile Photo", command=upload_photo)
+    upload_btn.grid(row=1, column=0, pady=5)
+
+    # File type dropdown and buttons below the image section in the second frame
+    ctk.CTkLabel(button_frame, text="Export As", font=("Segoe UI", 12)).grid(row=2, column=0, pady=(15, 5), padx=20, sticky="w")
+    file_type = ctk.StringVar(value="PDF")
+    file_dropdown = ctk.CTkOptionMenu(button_frame, values=["PDF", "TXT"], variable=file_type, width=140)
+    file_dropdown.grid(row=3, column=0, pady=8, padx=20, sticky="w")
+
+    # Action buttons (Generate and Print) in the second frame
+    ctk.CTkButton(button_frame, text="Generate Resume", command=save_resume, fg_color="#27AE60").grid(row=4, column=0, pady=10, padx=20, sticky="w")
+    ctk.CTkButton(button_frame, text="Print Resume", command=print_resume, fg_color="#2980B9").grid(row=5, column=0, pady=10, padx=20, sticky="w")
+
+    # Status Label (for saved file confirmation)
+    status_label = ctk.CTkLabel(root, text="", font=("Segoe UI", 10))
+    status_label.grid(row=12, column=0, columnspan=2, pady=10)
+
+    root.mainloop()
+    
+# Login Page UI
+login_root = ctk.CTk()
 login_root.title("Login - Resume Builder")
 center_window(login_root, 400, 300)
-login_root.configure(bg="#E8F0FE")
 
-frame = Frame(login_root, bg="white", bd=2, relief="groove")
-frame.place(relx=0.5, rely=0.5, anchor="center", width=320, height=240)
+frame = ctk.CTkFrame(login_root)
+frame.pack(pady=20, padx=30, fill="both", expand=True)
 
-Label(frame, text="Login or Create Account", font=("Segoe UI", 14, "bold"), bg="white", fg="#333").pack(pady=10)
-Label(frame, text="Username", font=("Segoe UI", 10), bg="white").pack()
-username_entry = Entry(frame, width=30, font=("Segoe UI", 10))
+ctk.CTkLabel(frame, text="Login or Create Account", font=("Segoe UI", 16, "bold")).pack(pady=15)
+username_entry = ctk.CTkEntry(frame, placeholder_text="Username")
 username_entry.pack(pady=5)
-
-Label(frame, text="Password", font=("Segoe UI", 10), bg="white").pack()
-password_entry = Entry(frame, show="*", width=30, font=("Segoe UI", 10))
+password_entry = ctk.CTkEntry(frame, placeholder_text="Password", show="*")
 password_entry.pack(pady=5)
 
-Button(frame, text="Login", command=login, width=15, bg="#4CAF50", fg="white", font=("Segoe UI", 10, "bold")).pack(pady=5)
-Button(frame, text="Create Account", command=create_account, width=15, bg="#2196F3", fg="white", font=("Segoe UI", 10, "bold")).pack()
+show_password_checkbox = ctk.CTkCheckBox(frame, text="Show Password", command=toggle_password_visibility)
+show_password_checkbox.pack(pady=(5, 15)) 
+
+ctk.CTkButton(frame, text="Login", command=login).pack(pady=5)
+ctk.CTkButton(frame, text="Create Account", command=create_account).pack(pady=5)
 
 login_root.mainloop()
