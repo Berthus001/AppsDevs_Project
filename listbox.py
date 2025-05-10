@@ -232,6 +232,10 @@ def save_resume():
 
     except Exception as e:
         status_label.configure(text=f"Error: {str(e)}", text_color="red")
+
+
+
+
 # Main Resume Builder App Code
 
 def main_app():
