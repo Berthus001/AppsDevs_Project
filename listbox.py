@@ -7,6 +7,7 @@ from reportlab.pdfgen import canvas
 import win32print
 import win32ui
 from PIL import Image, ImageTk, ImageWin
+from textwrap import wrap
 
 # Initialize theme
 ctk.set_appearance_mode("light")
@@ -68,7 +69,6 @@ def upload_photo():  # Declare as global to use in other functions
         image_label.configure(image=img_tk, text="") 
         image_label.image = img_tk  # Keep reference
 
-
 # Helper functions
 def center_window(window, width, height):
     screen_width = window.winfo_screenwidth()
@@ -88,7 +88,6 @@ def get_next_filename(extension, username):
         n += 1
 
 def clean_text(input_text):
-    # Replace multiple spaces with a single space and trim extra whitespace
     return ' '.join(input_text.split())
 
 def save_resume():
@@ -98,7 +97,7 @@ def save_resume():
     phone = phone_entry.get()
     address = Address_entry.get()
     education = education_entry.get("1.0", "end").strip()
-    skills = skills_entry.get(  "1.0", "end").strip()
+    skills = skills_entry.get("1.0", "end").strip()
     summary = summary_text.get("1.0", "end").strip()
     working_experience = working_experience_entry.get("1.0", "end").strip()
     filetype = file_type.get()
@@ -151,203 +150,88 @@ def save_resume():
             # Draw a line separator
             pdf.line(72, height - 160, width - 72, height - 160)
 
-        y_position = height - 220  # Start lower for more top margin
+            y_position = height - 220  # Start lower for more top margin
 
-        # Personal Info Section
-        pdf.setFont("Times-Roman", 16)
-        pdf.drawString(72, y_position + 35, "Personal Info:")  # Title raised a bit
-        y_position -= 30  # Space below the title
+            # Personal Info Section
+            pdf.setFont("Times-Roman", 16)
+            pdf.drawString(72, y_position + 35, "Personal Info:")
+            y_position -= 30  # Space below the title
 
-        pdf.setFont("Times-Roman", 14)
-        pdf.drawString(72, y_position + 39, f"📧 {email}")
-        y_position -= 25
-        pdf.drawString(72, y_position + 39, f"📞 {phone}")
-        y_position -= 25
-        pdf.drawString(72, y_position + 39, f"🏡 {address}")
-        y_position -= 20
-        pdf.line(72, y_position+ 39, width - 72, y_position + 39)  # Line below personal info
-        y_position -= 40  # Extra space after section
+            pdf.setFont("Times-Roman", 14)
+            pdf.drawString(72, y_position + 39, f"📧 {email}")
+            y_position -= 25
+            pdf.drawString(72, y_position + 39, f"📞 {phone}")
+            y_position -= 25
+            pdf.drawString(72, y_position + 39, f"🏡 {address}")
+            y_position -= 20
+            pdf.line(72, y_position+ 39, width - 72, y_position + 39)
+            y_position -= 40  # Extra space after section
 
-        # Skills Section
-        pdf.setFont("Times-Roman", 16)
-        pdf.drawString(72, y_position + 50, "Skills:")  # Title raised a bit
-        y_position -= 30
+            # Skills Section
+            pdf.setFont("Times-Roman", 16)
+            pdf.drawString(72, y_position + 50, "Skills:")
+            y_position -= 30
 
-        pdf.setFont("Times-Roman", 14)
-        pdf.drawString(72, y_position + 45, skills)
-        y_position -= 20
-        pdf.line(72, y_position, width - 72, y_position)
-        y_position -= 60
+            pdf.setFont("Times-Roman", 14)
+            pdf.drawString(72, y_position + 45, skills)
+            y_position -= 20
+            pdf.line(72, y_position, width - 72, y_position)
+            y_position -= 60
 
-        # Education Section
-        pdf.setFont("Times-Roman", 16)
-        pdf.drawString(72, y_position + 35, "Education:")  # Title raised a bit
-        y_position -= 30
+            # Education Section
+            pdf.setFont("Times-Roman", 16)
+            pdf.drawString(72, y_position + 35, "Education:")
+            y_position -= 30
 
-        pdf.setFont("Times-Roman", 14)
-        text_obj = pdf.beginText(72, y_position)
+            pdf.setFont("Times-Roman", 14)
+            text_obj = pdf.beginText(72, y_position)
 
-        lines = education.splitlines()
-        for line in lines:
-            text_obj.textLine(line)
-            y_position -= 14  # Adjust spacing per line
+            lines = education.splitlines()
+            for line in lines:
+                text_obj.textLine(line)
+                y_position -= 14  # Adjust spacing per line
 
-        pdf.drawText(text_obj)
+            pdf.drawText(text_obj)
 
-# Add spacing and draw the line after the block of text
-        y_position -= 10
-        pdf.line(72, y_position, width - 72, y_position)
-        y_position -= 60
+            # Add line separator
+            y_position -= 10
+            pdf.line(72, y_position, width - 72, y_position)
+            y_position -= 60
 
-        # Working Experience Section
-        pdf.setFont("Times-Roman", 16)
-        pdf.drawString(72, y_position  + 35, "Working Experience:")  # Title raised a bit
-        y_position -= 30
+            # Working Experience Section
+            pdf.setFont("Times-Roman", 16)
+            pdf.drawString(72, y_position + 35, "Working Experience:")
+            y_position -= 30
 
-        pdf.setFont("Times-Roman", 14)
-        text_obj = pdf.beginText(72, y_position + 45)
+            pdf.setFont("Times-Roman", 14)
+            text_obj = pdf.beginText(72, y_position + 45)
 
-        for line in working_experience.splitlines():
-            text_obj.textLine(line)
-            y_position -= 14  # Adjust vertical spacing between lines
+            for line in working_experience.splitlines():
+                text_obj.textLine(line)
+                y_position -= 14  # Adjust vertical spacing between lines
 
-        pdf.drawText(text_obj)
-        pdf.line(72, y_position, width - 72, y_position)
-        y_position -= 60
+            pdf.drawText(text_obj)
+            pdf.line(72, y_position, width - 72, y_position)
+            y_position -= 60
 
-        # Summary Section
-        pdf.setFont("Times-Roman", 16)
-        pdf.drawString(72, y_position + 35, "Professional Summary")  # Title raised a bit
-        y_position -= 30
+            # Summary Section
+            pdf.setFont("Times-Roman", 16)
+            pdf.drawString(72, y_position + 35, "Professional Summary:")
+            y_position -= 30
 
-        pdf.setFont("Times-Roman", 14)
-        text_obj = pdf.beginText(72, y_position + 45)
+            pdf.setFont("Times-Roman", 14)
+            text_obj = pdf.beginText(72, y_position + 45)
 
-        for line in summary.splitlines():
-            text_obj.textLine(line)
-            y_position -= 14
+            for line in summary.splitlines():
+                text_obj.textLine(line)
+                y_position -= 14
 
-        pdf.drawText(text_obj)           
-        pdf.save()
-        status_label.configure(text=f"Saved to: {generated_filepath}", text_color="green")
+            pdf.drawText(text_obj)           
+            pdf.save()
+            status_label.configure(text=f"Saved to: {generated_filepath}", text_color="green")
 
     except Exception as e:
         status_label.configure(text=f"Error: {str(e)}", text_color="red")
-
-def print_resume():
-    try:
-        # Resume content in lines
-      def print_resume():
-    try:
-        name = name_entry.get()
-        email = email_entry.get()
-        phone = phone_entry.get()
-        address = address_entry.get()
-        skills = skills_entry.get("1.0", END).strip()
-        education = education_entry.get("1.0", END).strip()
-        working_experience = working_experience_entry.get("1.0", END).strip()
-        summary = summary_text.get("1.0", END).strip()
-
-        # Printer setup
-        printer_name = win32print.GetDefaultPrinter()
-        if not printer_name:
-            raise Exception("No default printer found.")
-
-        hprinter = win32print.OpenPrinter(printer_name)
-        pdc = win32ui.CreateDC()
-        pdc.CreatePrinterDC(printer_name)
-        pdc.StartDoc("Resume Print")
-        pdc.StartPage()
-
-        # Fonts
-        name_font = win32ui.CreateFont({
-            "name": "Courier New",
-            "height": 200,   # Larger for name
-            "weight": 900,
-        })
-        title_font = win32ui.CreateFont({
-            "name": "Courier New",
-            "height": 160,   # Section titles
-            "weight": 700,
-        })
-        content_font = win32ui.CreateFont({
-            "name": "Courier New",
-            "height": 120,   # Regular content
-            "weight": 400,
-        })
-
-        x = 100
-        y = 100
-
-        # Print Name
-        pdc.SelectObject(name_font)
-        pdc.TextOut(x, y, name)
-        y += 300  # More space after name
-
-        pdc.SelectObject(content_font)
-        # Personal Info
-        pdc.TextOut(x, y, f"📧 {email}")
-        y += 100
-        pdc.TextOut(x, y, f"📞 {phone}")
-        y += 100
-        pdc.TextOut(x, y, f"🏡 {address}")
-        y += 150  # Larger space after personal info
-
-        # Skills
-        pdc.SelectObject(title_font)
-        pdc.TextOut(x, y, "Skills:")
-        y += 100  # Larger space after title
-        pdc.SelectObject(content_font)
-        for line in skills.splitlines():
-            pdc.TextOut(x, y, line)
-            y += 100  # Larger spacing between lines
-
-        y += 100  # Extra space before next section
-
-        # Education
-        pdc.SelectObject(title_font)
-        pdc.TextOut(x, y, "Education:")
-        y += 100  # Larger space after title
-        pdc.SelectObject(content_font)
-        for line in education.splitlines():
-            pdc.TextOut(x, y, line)
-            y += 100  # Larger spacing between lines
-
-        y += 100  # Extra space before next section
-
-        # Working Experience
-        pdc.SelectObject(title_font)
-        pdc.TextOut(x, y, "Working Experience:")
-        y += 100  # Larger space after title
-        pdc.SelectObject(content_font)
-        # Text wrapping for long lines in Working Experience
-        for line in working_experience.splitlines():
-            wrapped_lines = wrap(line, width=80)  # Wrap text to fit width
-            for wrapped_line in wrapped_lines:
-                pdc.TextOut(x, y, wrapped_line)
-                y += 100  # Larger spacing between lines
-
-        y += 100  # Extra space before next section
-
-        # Summary
-        pdc.SelectObject(title_font)
-        pdc.TextOut(x, y, "Professional Summary:")
-        y += 100  # Larger space after title
-        pdc.SelectObject(content_font)
-        # Text wrapping for long lines in Summary
-        for line in summary.splitlines():
-            wrapped_lines = wrap(line, width=80)  # Wrap text to fit width
-            for wrapped_line in wrapped_lines:
-                pdc.TextOut(x, y, wrapped_line)
-                y += 100  # Larger spacing between lines
-
-        pdc.EndPage()
-        pdc.EndDoc()
-        pdc.DeleteDC()
-
-    except Exception as e:
-        messagebox.showerror("Printer Error", f"Unable to print the resume:\n{str(e)}")
-
 # Main Resume Builder App Code
 
 def main_app():
