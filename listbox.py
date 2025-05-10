@@ -244,7 +244,6 @@ def print_resume():
         working_experience = working_experience_entry.get("1.0", END).strip()
         summary = summary_text.get("1.0", END).strip()
 
-        # Printer setup
         printer_name = win32print.GetDefaultPrinter()
         if not printer_name:
             raise Exception("No default printer found.")
@@ -274,68 +273,76 @@ def print_resume():
 
         x = 100
         y = 100
+        line_width = 1500
 
-        # Print Name
+        def draw_line():
+            nonlocal y
+            y += 20
+            pdc.MoveTo((x, y))
+            pdc.LineTo((line_width, y))
+            y += 80
+
+        # Name
         pdc.SelectObject(name_font)
         pdc.TextOut(x, y, name)
-        y += 300  # More space after name
+        y += 250  # Larger space after name
 
-        pdc.SelectObject(content_font)
         # Personal Info
+        y += 100
+        pdc.SelectObject(title_font)
+        pdc.TextOut(x, y, "Personal Info:")
+        y += 120
+        pdc.SelectObject(content_font)
         pdc.TextOut(x, y, f"📧 {email}")
         y += 100
         pdc.TextOut(x, y, f"📞 {phone}")
         y += 100
         pdc.TextOut(x, y, f"🏡 {address}")
-        y += 150  # Larger space after personal info
+        draw_line()
 
         # Skills
+        y += 100
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Skills:")
-        y += 100  # Larger space after title
+        y += 120
         pdc.SelectObject(content_font)
         for line in skills.splitlines():
             pdc.TextOut(x, y, line)
-            y += 100  # Larger spacing between lines
-
-        y += 100  # Extra space before next section
+            y += 100
+        draw_line()
 
         # Education
+        y += 100
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Education:")
-        y += 100  # Larger space after title
+        y += 120
         pdc.SelectObject(content_font)
         for line in education.splitlines():
             pdc.TextOut(x, y, line)
-            y += 100  # Larger spacing between lines
-
-        y += 100  # Extra space before next section
+            y += 100
+        draw_line()
 
         # Working Experience
+        y += 100
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Working Experience:")
-        y += 100  # Larger space after title
+        y += 120
         pdc.SelectObject(content_font)
-        # Text wrapping for long lines in Working Experience
         for line in working_experience.splitlines():
-            wrapped_lines = wrap(line, width=80)  # Wrap text to fit width
-            for wrapped_line in wrapped_lines:
-                pdc.TextOut(x, y, wrapped_line)
-                y += 100  # Larger spacing between lines
+            pdc.TextOut(x, y, line)
+            y += 100
+        draw_line()
 
-        y += 100  # Extra space before next section
-
-        # Summary
+        # Professional Summary
+        y += 100
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Professional Summary:")
-        y += 100  # Larger space after title
+        y += 120
         pdc.SelectObject(content_font)
-        # Text wrapping for long lines in Summary
         for line in summary.splitlines():
-            wrapped_lines = wrap(line, width=80)  # Wrap text to fit width
-            for wrapped_line in wrapped_lines:
-                pdc.TextOut(x, y, wrapped_line)
-                y += 100  # Larger spacing between lines
+            pdc.TextOut(x, y, line)
+            y += 100
+        draw_line()
 
         pdc.EndPage()
         pdc.EndDoc()
@@ -343,6 +350,7 @@ def print_resume():
 
     except Exception as e:
         messagebox.showerror("Printer Error", f"Unable to print the resume:\n{str(e)}")
+
 
 # Main Resume Builder App Code
 
