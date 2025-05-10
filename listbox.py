@@ -227,9 +227,7 @@ def save_resume():
             text_obj.textLine(line)
             y_position -= 14
 
-        pdf.drawText(text_obj)
-        
-            
+        pdf.drawText(text_obj)           
         pdf.save()
         status_label.configure(text=f"Saved to: {generated_filepath}", text_color="green")
 
@@ -253,29 +251,38 @@ def print_resume():
 
         # Title - Name
         lines.append(f"{name}")
+        lines.append("") 
         lines.append("-" * 80)
+        lines.append("") 
 
         # Personal Info
         lines.append("Personal Info:")
         lines.append(f"📧 {email}")
         lines.append(f"📞 {phone}")
         lines.append(f"🏡 {address}")
+        lines.append("") 
         lines.append("-" * 80)
+        lines.append("") 
 
         # Skills
         lines.append("Skills:")
         lines.append(skills)
+        lines.append("") 
         lines.append("-" * 80)
+        lines.append("") 
 
         # Education
         lines.append("Education:")
         lines.extend(education.splitlines())
         lines.append("-" * 80)
+        lines.append("") 
 
         # Working Experience
         lines.append("Working Experience:")
         lines.extend(working_experience.splitlines())
+        lines.append("") 
         lines.append("-" * 80)
+        lines.append("") 
 
         # Summary
         lines.append("Professional Summary:")
@@ -295,7 +302,7 @@ def print_resume():
         # Font setup
         font = win32ui.CreateFont({
             "name": "Courier New",
-            "height": 100,
+            "height": 120,
             "weight": 700,
         })
         pdc.SelectObject(font)
@@ -370,7 +377,6 @@ def main_app():
     phone_entry = create_labeled_entry("Phone", 2, 0)
     email_entry = create_labeled_entry("Email", 4, 0)
     Address_entry = create_labeled_entry("Address", 6, 0)
-    education_entry = create_labeled_entry("Education", 8, 0)
 
     ctk.CTkLabel(form_frame, text="Skills", font=("Segoe UI", 12)).grid(row=10, column=0, pady=(10, 0), padx=20, sticky="w")
     skills_entry = ctk.CTkTextbox(form_frame, width=500, height=180, border_color="gray", border_width=2)
