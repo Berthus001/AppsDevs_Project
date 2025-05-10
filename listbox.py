@@ -233,8 +233,116 @@ def save_resume():
     except Exception as e:
         status_label.configure(text=f"Error: {str(e)}", text_color="red")
 
+def print_resume():
+    try:
+        name = name_entry.get()
+        email = email_entry.get()
+        phone = phone_entry.get()
+        address = Address_entry.get()
+        skills = skills_entry.get("1.0", END).strip()
+        education = education_entry.get("1.0", END).strip()
+        working_experience = working_experience_entry.get("1.0", END).strip()
+        summary = summary_text.get("1.0", END).strip()
 
+        # Printer setup
+        printer_name = win32print.GetDefaultPrinter()
+        if not printer_name:
+            raise Exception("No default printer found.")
 
+        hprinter = win32print.OpenPrinter(printer_name)
+        pdc = win32ui.CreateDC()
+        pdc.CreatePrinterDC(printer_name)
+        pdc.StartDoc("Resume Print")
+        pdc.StartPage()
+
+        # Fonts
+        name_font = win32ui.CreateFont({
+            "name": "Courier New",
+            "height": 200,   # Larger for name
+            "weight": 900,
+        })
+        title_font = win32ui.CreateFont({
+            "name": "Courier New",
+            "height": 160,   # Section titles
+            "weight": 700,
+        })
+        content_font = win32ui.CreateFont({
+            "name": "Courier New",
+            "height": 120,   # Regular content
+            "weight": 400,
+        })
+
+        x = 100
+        y = 100
+
+        # Print Name
+        pdc.SelectObject(name_font)
+        pdc.TextOut(x, y, name)
+        y += 300  # More space after name
+
+        pdc.SelectObject(content_font)
+        # Personal Info
+        pdc.TextOut(x, y, f"📧 {email}")
+        y += 100
+        pdc.TextOut(x, y, f"📞 {phone}")
+        y += 100
+        pdc.TextOut(x, y, f"🏡 {address}")
+        y += 150  # Larger space after personal info
+
+        # Skills
+        pdc.SelectObject(title_font)
+        pdc.TextOut(x, y, "Skills:")
+        y += 100  # Larger space after title
+        pdc.SelectObject(content_font)
+        for line in skills.splitlines():
+            pdc.TextOut(x, y, line)
+            y += 100  # Larger spacing between lines
+
+        y += 100  # Extra space before next section
+
+        # Education
+        pdc.SelectObject(title_font)
+        pdc.TextOut(x, y, "Education:")
+        y += 100  # Larger space after title
+        pdc.SelectObject(content_font)
+        for line in education.splitlines():
+            pdc.TextOut(x, y, line)
+            y += 100  # Larger spacing between lines
+
+        y += 100  # Extra space before next section
+
+        # Working Experience
+        pdc.SelectObject(title_font)
+        pdc.TextOut(x, y, "Working Experience:")
+        y += 100  # Larger space after title
+        pdc.SelectObject(content_font)
+        # Text wrapping for long lines in Working Experience
+        for line in working_experience.splitlines():
+            wrapped_lines = wrap(line, width=80)  # Wrap text to fit width
+            for wrapped_line in wrapped_lines:
+                pdc.TextOut(x, y, wrapped_line)
+                y += 100  # Larger spacing between lines
+
+        y += 100  # Extra space before next section
+
+        # Summary
+        pdc.SelectObject(title_font)
+        pdc.TextOut(x, y, "Professional Summary:")
+        y += 100  # Larger space after title
+        pdc.SelectObject(content_font)
+        # Text wrapping for long lines in Summary
+        for line in summary.splitlines():
+            wrapped_lines = wrap(line, width=80)  # Wrap text to fit width
+            for wrapped_line in wrapped_lines:
+                pdc.TextOut(x, y, wrapped_line)
+                y += 100  # Larger spacing between lines
+
+        pdc.EndPage()
+        pdc.EndDoc()
+        pdc.DeleteDC()
+
+    except Exception as e:
+        messagebox.showerror("Printer Error", f"Unable to print the resume:\n{str(e)}")
 
 # Main Resume Builder App Code
 
