@@ -282,14 +282,14 @@ def print_resume():
             y += 150
 
         # Name
-        y += 100
+        y += 50
         pdc.SelectObject(name_font)
         pdc.TextOut(x, y, name)
         y += 350  # Larger space after name
         draw_line()
 
         # Personal Info
-        y += 10
+        y += 2
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Personal Info:")
         y += 150
@@ -303,7 +303,7 @@ def print_resume():
         draw_line()
 
         # Skills
-        y += 10
+        y += 2
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Skills:")
         y += 150
@@ -315,7 +315,7 @@ def print_resume():
         draw_line()
 
         # Education
-        y += 10
+        y += 2
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Education:")
         y += 150
@@ -327,7 +327,7 @@ def print_resume():
         draw_line()
 
         # Working Experience
-        y += 10
+        y += 2
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Working Experience:")
         y += 150
@@ -339,7 +339,7 @@ def print_resume():
         draw_line()
 
         # Professional Summary
-        y += 10
+        y += 2
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Professional Summary:")
         y += 150
@@ -396,9 +396,9 @@ def main_app():
     email_entry = create_labeled_entry("Email", 4, 0)
     Address_entry = create_labeled_entry("Address", 6, 0)
 
-    ctk.CTkLabel(form_frame, text="Skills", font=("Segoe UI", 12)).grid(row=7, column=0, pady=(10, 0), padx=20, sticky="w")
+    ctk.CTkLabel(form_frame, text="Skills", font=("Segoe UI", 12)).grid(row=8, column=0, pady=(10, 0), padx=20, sticky="w")
     skills_entry = ctk.CTkTextbox(form_frame, width=500, height=180, border_color="gray", border_width=2)
-    skills_entry.grid(row=8, column=0, rowspan=5, pady=5, padx=20, sticky="w")
+    skills_entry.grid(row=9, column=0, rowspan=5, pady=5, padx=20, sticky="w")
 
     # RIGHT SIDE entries
     ctk.CTkLabel(form_frame, text="Working Experience", font=("Segoe UI", 12)).grid(row=0, column=1, pady=(10, 0), padx=20, sticky="w")
