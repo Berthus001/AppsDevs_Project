@@ -285,7 +285,7 @@ def print_resume():
         y += 50
         pdc.SelectObject(name_font)
         pdc.TextOut(x, y, name)
-        y += 350  # Larger space after name
+        y += 150  # Larger space after name
         draw_line()
 
         # Personal Info
@@ -311,7 +311,7 @@ def print_resume():
         for line in skills.splitlines():
             pdc.TextOut(x, y, line)
             y += 130
-        y += 200
+        y += 50
         draw_line()
 
         # Education
@@ -323,7 +323,7 @@ def print_resume():
         for line in education.splitlines():
             pdc.TextOut(x, y, line)
             y += 130
-        y += 200
+        y += 50
         draw_line()
 
         # Working Experience
@@ -335,7 +335,7 @@ def print_resume():
         for line in working_experience.splitlines():
             pdc.TextOut(x, y, line)
             y += 130
-        y += 200
+        y += 50
         draw_line()
 
         # Professional Summary
@@ -346,8 +346,7 @@ def print_resume():
         pdc.SelectObject(content_font)
         for line in summary.splitlines():
             pdc.TextOut(x, y, line)
-            y += 100
-     
+            y += 100 
 
         pdc.EndPage()
         pdc.EndDoc()
