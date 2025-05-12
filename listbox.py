@@ -253,6 +253,26 @@ def print_resume():
         pdc.StartDoc("Resume Print")
         pdc.StartPage()
 
+
+        if image_filepath and os.path.exists(image_filepath):
+            img = Image.open(image_filepath).convert("RGB")
+            dib = ImageWin.Dib(img)
+
+            # Resize for printing
+            max_width, max_height = 200, 200
+            img_width, img_height = img.size
+            scale = min(max_width / img_width, max_height / img_height)
+            img_width = int(img_width * scale)
+            img_height = int(img_height * scale)
+
+                # Coordinates for top-right corner
+            printable_area = pdc.GetDeviceCaps(8), pdc.GetDeviceCaps(10)  # HORZRES, VERTRES
+            image_x = printable_area[0] - img_width - 100  # 100 px margin from right
+            image_y = 100  # Top
+
+            dib.draw(pdc.GetHandleOutput(), (image_x, image_y, image_x + img_width, image_y + img_height))
+
+
         # Fonts
         name_font = win32ui.CreateFont({
             "name": "Courier New",
@@ -285,7 +305,7 @@ def print_resume():
         y += 50
         pdc.SelectObject(name_font)
         pdc.TextOut(x, y, name)
-        y += 150  # Larger space after name
+        y += 300  # Larger space after name
         draw_line()
 
         # Personal Info
