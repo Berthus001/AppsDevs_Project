@@ -157,11 +157,11 @@ def save_resume():
             y_position -= 30  # Space below the title
 
             pdf.setFont("Times-Roman", 14)
-            pdf.drawString(72, y_position + 39, f"📧 {email}")
+            pdf.drawString(72, y_position + 39, f"• {email}")
             y_position -= 25
-            pdf.drawString(72, y_position + 39, f"📞 {phone}")
+            pdf.drawString(72, y_position + 39, f"• {phone}")
             y_position -= 25
-            pdf.drawString(72, y_position + 39, f"🏡 {address}")
+            pdf.drawString(72, y_position + 39, f"• {address}")
             y_position -= 20
             pdf.line(72, y_position+ 39, width - 72, y_position + 39)
             y_position -= 40  
@@ -259,7 +259,7 @@ def print_resume():
             dib = ImageWin.Dib(img)
 
             # Resize for printing
-            max_width, max_height = 300, 300
+            max_width, max_height = 400, 400
             img_width, img_height = img.size
             scale = min(max_width / img_width, max_height / img_height)
             img_width = int(img_width * scale)
@@ -305,7 +305,7 @@ def print_resume():
         y += 50
         pdc.SelectObject(name_font)
         pdc.TextOut(x, y, name)
-        y += 350  # Larger space after name
+        y += 450  # Larger space after name
         draw_line()
 
         # Personal Info
@@ -314,11 +314,11 @@ def print_resume():
         pdc.TextOut(x, y, "Personal Info:")
         y += 150
         pdc.SelectObject(content_font)
-        pdc.TextOut(x, y, f"📧 {email}")
+        pdc.TextOut(x, y, f"• {email}")
         y += 100
-        pdc.TextOut(x, y, f"📞 {phone}")
+        pdc.TextOut(x, y, f"• {phone}")
         y += 100
-        pdc.TextOut(x, y, f"🏡 {address}")
+        pdc.TextOut(x, y, f"• {address}")
         y += 200
         draw_line()
 
