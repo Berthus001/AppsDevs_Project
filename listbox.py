@@ -8,6 +8,7 @@ import win32print
 import win32ui
 from PIL import Image, ImageTk, ImageWin
 from textwrap import wrap
+import tkinter as tk
 
 # Initialize theme
 ctk.set_appearance_mode("light")
@@ -88,7 +89,7 @@ def get_next_filename(extension, username):
         n += 1
 
 def clean_text(input_text):
-    return ' '.join(input_text.split())
+    return ' '.join(input_text.split()) 
 
 def save_resume():
     global generated_filepath, image_filepath  # image_filepath stores the uploaded image path
@@ -137,7 +138,7 @@ def save_resume():
 
             # Title section (Name)
             pdf.setFont("Times-Roman", 50)
-            pdf.drawString(72, height - 80, f"{name}")
+            pdf.drawString(72, height - 100, f"{name}")
 
             # Draw the image (resume photo)
             if image_filepath:
@@ -169,11 +170,11 @@ def save_resume():
 
             # Skills Section
             pdf.setFont("Times-Roman", 16)
-            pdf.drawString(72, y_position + 50, "Skills:")
-            y_position -= 30
+            pdf.drawString(72, y_position + 55, "Skills:")
+            y_position -= 20
 
             pdf.setFont("Times-Roman", 14)
-            pdf.drawString(72, y_position + 45, skills)
+            pdf.drawString(72, y_position + 55, skills)
             y_position -= 20
             pdf.line(72, y_position, width - 72, y_position)
             y_position -= 60
@@ -184,7 +185,7 @@ def save_resume():
             y_position -= 30
 
             pdf.setFont("Times-Roman", 14)
-            text_obj = pdf.beginText(72, y_position)
+            text_obj = pdf.beginText(72, y_position + 45)
 
             lines = education.splitlines()
             for line in lines:
@@ -286,25 +287,27 @@ def print_resume():
         pdc.SelectObject(name_font)
         pdc.TextOut(x, y, name)
         y += 250  # Larger space after name
+        draw_line()
 
         # Personal Info
         y += 100
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Personal Info:")
-        y += 120
+        y += 150
         pdc.SelectObject(content_font)
         pdc.TextOut(x, y, f"📧 {email}")
         y += 100
         pdc.TextOut(x, y, f"📞 {phone}")
         y += 100
         pdc.TextOut(x, y, f"🏡 {address}")
+        y += 200
         draw_line()
 
         # Skills
         y += 100
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Skills:")
-        y += 120
+        y += 150
         pdc.SelectObject(content_font)
         for line in skills.splitlines():
             pdc.TextOut(x, y, line)
@@ -315,29 +318,29 @@ def print_resume():
         y += 100
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Education:")
-        y += 120
+        y += 150
         pdc.SelectObject(content_font)
         for line in education.splitlines():
             pdc.TextOut(x, y, line)
-            y += 100
+            y += 130
         draw_line()
 
         # Working Experience
         y += 100
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Working Experience:")
-        y += 120
+        y += 150
         pdc.SelectObject(content_font)
         for line in working_experience.splitlines():
             pdc.TextOut(x, y, line)
-            y += 100
+            y += 130
         draw_line()
 
         # Professional Summary
         y += 100
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Professional Summary:")
-        y += 120
+        y += 150
         pdc.SelectObject(content_font)
         for line in summary.splitlines():
             pdc.TextOut(x, y, line)
@@ -355,7 +358,7 @@ def print_resume():
 # Main Resume Builder App Code
 
 def main_app():
-    global name_entry, email_entry, phone_entry, working_experience_entry, summary_text, file_type, status_label, image_label, skills_entry,education_entry,Address_entry, generated_filepath
+    global name_entry, email_entry, phone_entry, working_experience_entry, summary_text, file_type, status_label, image_label, skills_entry,education_entry,Address_entry, generated_filepath, form_frame
 
     root = ctk.CTk()
     root.title("Resume Builder")
@@ -391,9 +394,9 @@ def main_app():
     email_entry = create_labeled_entry("Email", 4, 0)
     Address_entry = create_labeled_entry("Address", 6, 0)
 
-    ctk.CTkLabel(form_frame, text="Skills", font=("Segoe UI", 12)).grid(row=10, column=0, pady=(10, 0), padx=20, sticky="w")
+    ctk.CTkLabel(form_frame, text="Skills", font=("Segoe UI", 12)).grid(row=8, column=0, pady=(10, 0), padx=20, sticky="w")
     skills_entry = ctk.CTkTextbox(form_frame, width=500, height=180, border_color="gray", border_width=2)
-    skills_entry.grid(row=11, column=0, rowspan=5, pady=5, padx=20, sticky="w")
+    skills_entry.grid(row=9 , column=0, rowspan=5, pady=5, padx=20, sticky="w")
 
     # RIGHT SIDE entries
     ctk.CTkLabel(form_frame, text="Working Experience", font=("Segoe UI", 12)).grid(row=0, column=1, pady=(10, 0), padx=20, sticky="w")
@@ -430,6 +433,8 @@ def main_app():
     # Action buttons (Generate and Print) in the second frame
     ctk.CTkButton(button_frame, text="Generate Resume", command=save_resume, fg_color="#27AE60").grid(row=4, column=0, pady=10, padx=20, sticky="w")
     ctk.CTkButton(button_frame, text="Print Resume", command=print_resume, fg_color="#2980B9").grid(row=5, column=0, pady=10, padx=20, sticky="w")
+
+    # Button to add pointer circle
 
     # Status Label (for saved file confirmation)
     status_label = ctk.CTkLabel(root, text="", font=("Segoe UI", 10))
