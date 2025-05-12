@@ -273,7 +273,7 @@ def print_resume():
 
         x = 100
         y = 100
-        line_width = 1500
+        line_width = 2500
 
         def draw_line():
             nonlocal y
@@ -283,13 +283,14 @@ def print_resume():
             y += 80
 
         # Name
+        y += 100
         pdc.SelectObject(name_font)
         pdc.TextOut(x, y, name)
-        y += 250  # Larger space after name
+        y += 350  # Larger space after name
         draw_line()
 
         # Personal Info
-        y += 100
+        y += 75
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Personal Info:")
         y += 150
@@ -303,18 +304,18 @@ def print_resume():
         draw_line()
 
         # Skills
-        y += 100
+        y += 50
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Skills:")
         y += 150
         pdc.SelectObject(content_font)
         for line in skills.splitlines():
             pdc.TextOut(x, y, line)
-            y += 100
+            y += 200
         draw_line()
 
         # Education
-        y += 100
+        y += 50
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Education:")
         y += 150
@@ -322,10 +323,11 @@ def print_resume():
         for line in education.splitlines():
             pdc.TextOut(x, y, line)
             y += 130
+        y += 200
         draw_line()
 
         # Working Experience
-        y += 100
+        y += 50
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Working Experience:")
         y += 150
@@ -333,10 +335,11 @@ def print_resume():
         for line in working_experience.splitlines():
             pdc.TextOut(x, y, line)
             y += 130
+        y += 200
         draw_line()
 
         # Professional Summary
-        y += 100
+        y += 50
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Professional Summary:")
         y += 150
@@ -344,7 +347,7 @@ def print_resume():
         for line in summary.splitlines():
             pdc.TextOut(x, y, line)
             y += 100
-        draw_line()
+     
 
         pdc.EndPage()
         pdc.EndDoc()
