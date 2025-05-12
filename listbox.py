@@ -7,8 +7,7 @@ from reportlab.pdfgen import canvas
 import win32print
 import win32ui
 from PIL import Image, ImageTk, ImageWin
-from textwrap import wrap
-import tkinter as tk
+
 
 # Initialize theme
 ctk.set_appearance_mode("light")
@@ -273,14 +272,14 @@ def print_resume():
 
         x = 100
         y = 100
-        line_width = 2500
+        line_width = 2800
 
         def draw_line():
             nonlocal y
             y += 20
             pdc.MoveTo((x, y))
             pdc.LineTo((line_width, y))
-            y += 80
+            y += 150
 
         # Name
         y += 100
@@ -304,18 +303,19 @@ def print_resume():
         draw_line()
 
         # Skills
-        y += 50
+        y += 25
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Skills:")
         y += 150
         pdc.SelectObject(content_font)
         for line in skills.splitlines():
             pdc.TextOut(x, y, line)
-            y += 200
+            y += 130
+        y += 200
         draw_line()
 
         # Education
-        y += 50
+        y += 25
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Education:")
         y += 150
@@ -327,7 +327,7 @@ def print_resume():
         draw_line()
 
         # Working Experience
-        y += 50
+        y += 25
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Working Experience:")
         y += 150
@@ -339,7 +339,7 @@ def print_resume():
         draw_line()
 
         # Professional Summary
-        y += 50
+        y += 25
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Professional Summary:")
         y += 150
@@ -396,9 +396,9 @@ def main_app():
     email_entry = create_labeled_entry("Email", 4, 0)
     Address_entry = create_labeled_entry("Address", 6, 0)
 
-    ctk.CTkLabel(form_frame, text="Skills", font=("Segoe UI", 12)).grid(row=8, column=0, pady=(10, 0), padx=20, sticky="w")
+    ctk.CTkLabel(form_frame, text="Skills", font=("Segoe UI", 12)).grid(row=7, column=0, pady=(10, 0), padx=20, sticky="w")
     skills_entry = ctk.CTkTextbox(form_frame, width=500, height=180, border_color="gray", border_width=2)
-    skills_entry.grid(row=9 , column=0, rowspan=5, pady=5, padx=20, sticky="w")
+    skills_entry.grid(row=8, column=0, rowspan=5, pady=5, padx=20, sticky="w")
 
     # RIGHT SIDE entries
     ctk.CTkLabel(form_frame, text="Working Experience", font=("Segoe UI", 12)).grid(row=0, column=1, pady=(10, 0), padx=20, sticky="w")
