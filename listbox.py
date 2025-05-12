@@ -289,7 +289,7 @@ def print_resume():
         draw_line()
 
         # Personal Info
-        y += 75
+        y += 10
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Personal Info:")
         y += 150
@@ -303,7 +303,7 @@ def print_resume():
         draw_line()
 
         # Skills
-        y += 25
+        y += 10
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Skills:")
         y += 150
@@ -315,7 +315,7 @@ def print_resume():
         draw_line()
 
         # Education
-        y += 25
+        y += 10
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Education:")
         y += 150
@@ -327,7 +327,7 @@ def print_resume():
         draw_line()
 
         # Working Experience
-        y += 25
+        y += 10
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Working Experience:")
         y += 150
@@ -339,7 +339,7 @@ def print_resume():
         draw_line()
 
         # Professional Summary
-        y += 25
+        y += 10
         pdc.SelectObject(title_font)
         pdc.TextOut(x, y, "Professional Summary:")
         y += 150
