@@ -92,7 +92,6 @@ def clean_text(input_text):
     return ' '.join(input_text.split()) 
 
 def save_resume():
-    global generated_filepath, image_filepath  # image_filepath stores the uploaded image path
     name = name_entry.get()
     email = email_entry.get()
     phone = phone_entry.get()
@@ -151,7 +150,7 @@ def save_resume():
             # Draw a line separator
             pdf.line(72, height - 160, width - 72, height - 160)
 
-            y_position = height - 220  # Start lower for more top margin
+            y_position = height - 220 
 
             # Personal Info Section
             pdf.setFont("Times-Roman", 16)
@@ -166,7 +165,7 @@ def save_resume():
             pdf.drawString(72, y_position + 39, f"🏡 {address}")
             y_position -= 20
             pdf.line(72, y_position+ 39, width - 72, y_position + 39)
-            y_position -= 40  # Extra space after section
+            y_position -= 40  
 
             # Skills Section
             pdf.setFont("Times-Roman", 16)
@@ -358,7 +357,7 @@ def print_resume():
 # Main Resume Builder App Code
 
 def main_app():
-    global name_entry, email_entry, phone_entry, working_experience_entry, summary_text, file_type, status_label, image_label, skills_entry,education_entry,Address_entry, generated_filepath, form_frame
+    global name_entry, email_entry, phone_entry, working_experience_entry, summary_text, file_type, status_label, image_label, skills_entry,education_entry,Address_entry, generated_filepath, image_filepath
 
     root = ctk.CTk()
     root.title("Resume Builder")
