@@ -259,7 +259,7 @@ def print_resume():
             dib = ImageWin.Dib(img)
 
             # Resize for printing
-            max_width, max_height = 200, 200
+            max_width, max_height = 300, 300
             img_width, img_height = img.size
             scale = min(max_width / img_width, max_height / img_height)
             img_width = int(img_width * scale)
@@ -267,7 +267,7 @@ def print_resume():
 
                 # Coordinates for top-right corner
             printable_area = pdc.GetDeviceCaps(8), pdc.GetDeviceCaps(10)  # HORZRES, VERTRES
-            image_x = printable_area[0] - img_width - 100  # 100 px margin from right
+            image_x = printable_area[0] - img_width - 150  # 100 px margin from right
             image_y = 100  # Top
 
             dib.draw(pdc.GetHandleOutput(), (image_x, image_y, image_x + img_width, image_y + img_height))
@@ -305,7 +305,7 @@ def print_resume():
         y += 50
         pdc.SelectObject(name_font)
         pdc.TextOut(x, y, name)
-        y += 300  # Larger space after name
+        y += 350  # Larger space after name
         draw_line()
 
         # Personal Info
