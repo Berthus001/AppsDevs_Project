@@ -103,6 +103,7 @@ def save_resume():
 
     lines = [
         f"{name}",
+        "",
         f"📧 {email}",
         f"📞 {phone}",
         f"🏡 {address}",
