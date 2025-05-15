@@ -8,7 +8,6 @@ import win32print
 import win32ui
 from PIL import Image, ImageTk, ImageWin
 
-
 # Initialize theme
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -17,6 +16,7 @@ ctk.set_default_color_theme("blue")
 documents_path = os.path.join(os.path.expanduser("~"), "Documents")
 generated_filepath = ""
 image_filepath = None
+
 
 # Login Page Code First
 def login():
@@ -31,6 +31,7 @@ def login():
                 messagebox.showerror("Login Failed", "Wrong username or password")
     except FileNotFoundError:
         messagebox.showerror("Error", "No users registered yet")
+
 
 def create_account():
     username = username_entry.get()
@@ -48,22 +49,26 @@ def create_account():
         f.write(f"{username}:{password}\n")
     messagebox.showinfo("Success", "Account created. You can now log in.")
 
+
 def toggle_password_visibility():
     if show_password_checkbox.get():
         password_entry.configure(show="")
     else:
         password_entry.configure(show="*")
 
+
 def show_resume_builder():
     login_root.destroy()
     main_app()
 
-def upload_photo():  
+
+def upload_photo():
+    global image_filepath
     file_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.jpg *.jpeg *.png")])
     if file_path:
-        image_filepath = file_path  
+        image_filepath = file_path
         img = Image.open(file_path)
-        img = img.resize((192, 192))  
+        img = img.resize((192, 192))
         img_tk = ImageTk.PhotoImage(img)
         image_label.configure(image=img_tk, text="")
         image_label.image = img_tk
@@ -76,6 +81,7 @@ def center_window(window, width, height):
     y = int((screen_height / 2) - (height / 2))
     window.geometry(f"{width}x{height}+{x}+{y}")
 
+
 def get_next_filename(extension, username):
     base = re.sub(r'\W+', '', username.replace(" ", "")) or "resume"
     n = 0
@@ -86,8 +92,10 @@ def get_next_filename(extension, username):
             return full_path
         n += 1
 
+
 def clean_text(input_text):
-    return ' '.join(input_text.split()) 
+    return ' '.join(input_text.split())
+
 
 def save_resume():
     name = name_entry.get()
@@ -119,7 +127,7 @@ def save_resume():
         "Summary:",
         summary
     ]
-    
+
     content = "\n".join(lines)
     generated_filepath = get_next_filename(filetype, name)
 
@@ -147,11 +155,11 @@ def save_resume():
             # Draw a line separator
             pdf.line(72, height - 160, width - 72, height - 160)
 
-            y_position = height - 220 
+            y_position = height - 220
 
             pdf.setFont("Times-Roman", 16)
             pdf.drawString(72, y_position + 35, "Personal Info:")
-            y_position -= 30  
+            y_position -= 30
 
             pdf.setFont("Times-Roman", 14)
             pdf.drawString(72, y_position + 39, f"• {email}")
@@ -160,8 +168,8 @@ def save_resume():
             y_position -= 25
             pdf.drawString(72, y_position + 39, f"• {address}")
             y_position -= 20
-            pdf.line(72, y_position+ 39, width - 72, y_position + 39)
-            y_position -= 40  
+            pdf.line(72, y_position + 39, width - 72, y_position + 39)
+            y_position -= 40
 
             pdf.setFont("Times-Roman", 16)
             pdf.drawString(72, y_position + 55, "Skills:")
@@ -183,7 +191,7 @@ def save_resume():
             lines = education.splitlines()
             for line in lines:
                 text_obj.textLine(line)
-                y_position -= 14  
+                y_position -= 14
 
             pdf.drawText(text_obj)
 
@@ -200,7 +208,7 @@ def save_resume():
 
             for line in working_experience.splitlines():
                 text_obj.textLine(line)
-                y_position -= 14 
+                y_position -= 14
 
             pdf.drawText(text_obj)
             pdf.line(72, y_position, width - 72, y_position)
@@ -217,12 +225,13 @@ def save_resume():
                 text_obj.textLine(line)
                 y_position -= 14
 
-            pdf.drawText(text_obj)           
+            pdf.drawText(text_obj)
             pdf.save()
             status_label.configure(text=f"Saved to: {generated_filepath}", text_color="green")
 
     except Exception as e:
         status_label.configure(text=f"Error: {str(e)}", text_color="red")
+
 
 def print_resume():
     try:
@@ -245,29 +254,25 @@ def print_resume():
         pdc.StartDoc("Resume Print")
         pdc.StartPage()
 
-
         if image_filepath and os.path.exists(image_filepath):
             img = Image.open(image_filepath).convert("RGB")
             dib = ImageWin.Dib(img)
 
-     
             max_width, max_height = 400, 400
             img_width, img_height = img.size
             scale = min(max_width / img_width, max_height / img_height)
             img_width = int(img_width * scale)
             img_height = int(img_height * scale)
 
-                
             printable_area = pdc.GetDeviceCaps(8), pdc.GetDeviceCaps(10)  #
             image_x = printable_area[0] - img_width - 150  #
             image_y = 100  # Top
 
             dib.draw(pdc.GetHandleOutput(), (image_x, image_y, image_x + img_width, image_y + img_height))
 
-
         name_font = win32ui.CreateFont({
             "name": "Courier New",
-            "height": 200,   
+            "height": 200,
             "weight": 900,
         })
         title_font = win32ui.CreateFont({
@@ -295,7 +300,7 @@ def print_resume():
         y += 50
         pdc.SelectObject(name_font)
         pdc.TextOut(x, y, name)
-        y += 450 
+        y += 450
         draw_line()
 
         y += 2
@@ -364,7 +369,7 @@ def print_resume():
 # Main Resume Builder App Code
 
 def main_app():
-    global name_entry, email_entry, phone_entry, working_experience_entry, summary_text, file_type, status_label, image_label, skills_entry,education_entry,Address_entry, generated_filepath, image_filepath
+    global name_entry, email_entry, phone_entry, working_experience_entry, summary_text, file_type, status_label, image_label, skills_entry, education_entry, Address_entry, generated_filepath, image_filepath
 
     root = ctk.CTk()
     root.title("Resume Builder")
@@ -373,23 +378,21 @@ def main_app():
 
     root.resizable(True, True)
 
-    ctk.CTkLabel(root, text="📝 Resume Builder", font=("Segoe UI", 26, "bold")).grid(row=0, column=0, columnspan=2, pady=20)
+    ctk.CTkLabel(root, text="📝 Resume Builder", font=("Segoe UI", 26, "bold")).grid(row=0, column=0, columnspan=2,
+                                                                                    pady=20)
 
-    form_frame = ctk.CTkFrame(root ,width=800, height=750)
-    form_frame.grid_propagate(False)  
+    form_frame = ctk.CTkFrame(root, width=800, height=750)
+    form_frame.grid_propagate(False)
     form_frame.grid(row=1, column=0, pady=10, padx=20, sticky="nsew")
-    
-   
-    form_frame.grid_columnconfigure(0, weight=2)
-    form_frame.grid_columnconfigure(1, weight=1)  
-   
 
+    form_frame.grid_columnconfigure(0, weight=2)
+    form_frame.grid_columnconfigure(1, weight=1)
 
     def create_labeled_entry(label_text, row, column, columnspan=1):
         label = ctk.CTkLabel(form_frame, text=label_text, font=("Segoe UI", 12))
         label.grid(row=row, column=column, pady=(10, 0), padx=20, sticky="w")
-        entry = ctk.CTkEntry(form_frame, width=600,)
-        entry.grid(row=row+1, column=column, pady=5, padx=20, sticky="w", columnspan=columnspan)
+        entry = ctk.CTkEntry(form_frame, width=600, )
+        entry.grid(row=row + 1, column=column, pady=5, padx=20, sticky="w", columnspan=columnspan)
         return entry
 
     name_entry = create_labeled_entry("Full Name", 0, 0)
@@ -397,19 +400,23 @@ def main_app():
     email_entry = create_labeled_entry("Email", 4, 0)
     Address_entry = create_labeled_entry("Address", 6, 0)
 
-    ctk.CTkLabel(form_frame, text="Skills", font=("Segoe UI", 12)).grid(row=8, column=0, pady=(10, 0), padx=20, sticky="w")
+    ctk.CTkLabel(form_frame, text="Skills", font=("Segoe UI", 12)).grid(row=8, column=0, pady=(10, 0), padx=20,
+                                                                        sticky="w")
     skills_entry = ctk.CTkTextbox(form_frame, width=500, height=180, border_color="gray", border_width=2)
     skills_entry.grid(row=9, column=0, rowspan=5, pady=5, padx=20, sticky="w")
 
-    ctk.CTkLabel(form_frame, text="Working Experience", font=("Segoe UI", 12)).grid(row=0, column=1, pady=(10, 0), padx=20, sticky="w")
+    ctk.CTkLabel(form_frame, text="Working Experience", font=("Segoe UI", 12)).grid(row=0, column=1, pady=(10, 0),
+                                                                                    padx=20, sticky="w")
     working_experience_entry = ctk.CTkTextbox(form_frame, width=500, height=180, border_color="gray", border_width=2)
     working_experience_entry.grid(row=1, column=1, rowspan=5, pady=5, padx=20, sticky="w")
 
-    ctk.CTkLabel(form_frame, text="Education", font=("Segoe UI", 12)).grid(row=6, column=1, pady=(10, 0), padx=20, sticky="w")
+    ctk.CTkLabel(form_frame, text="Education", font=("Segoe UI", 12)).grid(row=6, column=1, pady=(10, 0), padx=20,
+                                                                           sticky="w")
     education_entry = ctk.CTkTextbox(form_frame, width=500, height=180, border_color="gray", border_width=2)
     education_entry.grid(row=7, column=1, rowspan=5, pady=5, padx=20, sticky="w")
 
-    ctk.CTkLabel(form_frame, text="Summary", font=("Segoe UI", 12)).grid(row=12, column=1, pady=(10, 0), padx=20, sticky="w")
+    ctk.CTkLabel(form_frame, text="Summary", font=("Segoe UI", 12)).grid(row=12, column=1, pady=(10, 0), padx=20,
+                                                                         sticky="w")
     summary_text = ctk.CTkTextbox(form_frame, width=500, height=180, border_color="gray", border_width=2)
     summary_text.grid(row=13, column=1, rowspan=5, columnspan=1, pady=5, padx=20, sticky="w")
 
@@ -424,19 +431,25 @@ def main_app():
     upload_btn = ctk.CTkButton(image_frame, text="Upload Profile Photo", command=upload_photo)
     upload_btn.grid(row=1, column=0, pady=5)
 
-    ctk.CTkLabel(button_frame, text="Export As", font=("Segoe UI", 12)).grid(row=2, column=0, pady=(15, 5), padx=20, sticky="w")
+    ctk.CTkLabel(button_frame, text="Export As", font=("Segoe UI", 12)).grid(row=2, column=0, pady=(15, 5), padx=20,
+                                                                             sticky="w")
     file_type = ctk.StringVar(value="PDF")
     file_dropdown = ctk.CTkOptionMenu(button_frame, values=["PDF", "TXT"], variable=file_type, width=140)
     file_dropdown.grid(row=3, column=0, pady=8, padx=20, sticky="w")
 
-    ctk.CTkButton(button_frame, text="Generate Resume", command=save_resume, fg_color="#27AE60").grid(row=4, column=0, pady=10, padx=20, sticky="w")
-    ctk.CTkButton(button_frame, text="Print Resume", command=print_resume, fg_color="#2980B9").grid(row=5, column=0, pady=10, padx=20, sticky="w")
+    ctk.CTkButton(button_frame, text="Generate Resume", command=save_resume, fg_color="#27AE60").grid(row=4, column=0,
+                                                                                                      pady=10, padx=20,
+                                                                                                      sticky="w")
+    ctk.CTkButton(button_frame, text="Print Resume", command=print_resume, fg_color="#2980B9").grid(row=5, column=0,
+                                                                                                    pady=10, padx=20,
+                                                                                                    sticky="w")
 
     status_label = ctk.CTkLabel(root, text="", font=("Segoe UI", 10))
     status_label.grid(row=12, column=0, columnspan=2, pady=10)
 
     root.mainloop()
-    
+
+
 # Login Page UI
 login_root = ctk.CTk()
 login_root.title("Login - Resume Builder")
@@ -452,7 +465,7 @@ password_entry = ctk.CTkEntry(frame, placeholder_text="Password", show="*")
 password_entry.pack(pady=5)
 
 show_password_checkbox = ctk.CTkCheckBox(frame, text="Show Password", command=toggle_password_visibility)
-show_password_checkbox.pack(pady=(5, 15)) 
+show_password_checkbox.pack(pady=(5, 15))
 
 ctk.CTkButton(frame, text="Login", command=login).pack(pady=5)
 ctk.CTkButton(frame, text="Create Account", command=create_account).pack(pady=5)
